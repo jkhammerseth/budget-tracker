@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # README
 
 ## RUN
@@ -11,3 +12,6 @@ air
 ## BUILD
 
 go build ./cmd/api
+=======
+# budget-tracker
+>>>>>>> origin/main

@@ -48,7 +48,8 @@ func main() {
 		api.PUT("/users/:id", handler.UpdateUser)
 		api.DELETE("/users/:id", handler.DeleteUser)
 
-		api.POST("/users/expenses", handler.AddExpense)
+		api.POST("/users/expense", handler.AddExpense)
+		api.POST("/users/expenses", handler.AddExpenses)
 		api.GET("/users/expenses", handler.GetExpenses)
 		api.PUT("/users/expenses/:id", handler.UpdateExpense)
 		api.DELETE("/users/expenses/:id", handler.DeleteExpense)

@@ -11,7 +11,6 @@ import (
 )
 
 func AddExpense(c *gin.Context) {
-	// Assuming userID is stored in the context as uint
 	userID, _ := c.Get("userID")
 	userIDUint, ok := userID.(uint)
 	if !ok {
@@ -25,17 +24,44 @@ func AddExpense(c *gin.Context) {
 		return
 	}
 
-	// Set the UserID field of newExpense to the userID extracted from the token
 	newExpense.UserID = userIDUint
 
 	db := db.GetDB()
-	// Create the expense with the UserID field set to associate it with the user
 	if result := db.Create(&newExpense); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
 
 	c.IndentedJSON(http.StatusCreated, newExpense)
+}
+
+func AddExpenses(c *gin.Context) {
+	userID, _ := c.Get("userID")
+	userIDUint, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	var expenses []model.Expense
+	if err := c.ShouldBindJSON(&expenses); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for i := range expenses {
+		expenses[i].UserID = userIDUint
+	}
+
+	db := db.GetDB()
+	for _, expense := range expenses {
+		if result := db.Create(&expense); result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusCreated, expenses)
 }
 
 func GetExpenses(c *gin.Context) {

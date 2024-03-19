@@ -44,6 +44,35 @@ func AddIncome(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, newIncome)
 }
 
+func AddListIncome(c *gin.Context) {
+	userID, _ := c.Get("userID")
+	userIDUint, ok := userID.(uint)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+		return
+	}
+
+	var incomes []model.Income
+	if err := c.ShouldBindJSON(&incomes); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	for i := range incomes {
+		incomes[i].UserID = userIDUint
+	}
+
+	db := db.GetDB()
+	for _, income := range incomes {
+		if result := db.Create(&income); result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+			return
+		}
+	}
+
+	c.IndentedJSON(http.StatusCreated, incomes)
+}
+
 func GetIncomes(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {

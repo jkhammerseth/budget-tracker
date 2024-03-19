@@ -1,5 +1,6 @@
 <script>
     import AddExpense from "../../components/AddExpense.svelte";
+    import AddMultipleExpenses from "../../components/AddMultipleExpenses.svelte";
     import Calendar from "../../components/Calendar.svelte";
     import ExpensesTable from "../../components/ExpensesTable.svelte";
     import MonthlyExpensesGraph from "../../components/MonthlyExpensesGraph.svelte";
@@ -24,6 +25,8 @@
     .add-expense-container,
     .calendar-container,
     .bar-chart-container,
+    .shared-expense-container,
+    .multiple-expense-container,
     .budget-table-container {
         background: #FFFFFF;
         padding: 20px;
@@ -56,11 +59,16 @@
         align-items: center;
     }
 
-
+    .multiple-expense-container {
+        grid-column: 3 / 4;
+        grid-row: 4;
+        text-align: right;
+        align-items: center;
+    }
 
     .budget-table-container {
         grid-column: 1 / 3;
-        grid-row: 2 / 4;
+        grid-row: 2 / 8;
         padding-top: 0%;
     }
 
@@ -86,6 +94,12 @@
             text-align: center;
         }
 
+        .shared-expense-container {
+            grid-column: 1 / 2;
+            grid-row: 4;
+            text-align: center;
+        }
+
         .budget-table-container {
             grid-column: 1 / 2;
             grid-row: 4;
@@ -100,6 +114,9 @@
    
     <div class="add-expense-container">
         <AddExpense />
+    </div>
+    <div class="multiple-expense-container">
+        <AddMultipleExpenses />
     </div>
     <div class="shared-expense-container">
         <SharedExpense />

@@ -7,6 +7,16 @@
     export let date;
   
     let modalContent;
+
+    const categories = [
+        'Salary',
+        'Investment',
+        'Rental',
+        'Interest',
+        'Dividends',
+        'Business',
+        'Other'
+    ];
   
     function close() {
         showModal = false;
@@ -78,9 +88,9 @@
         </div>
         <div class="form-control">
             <select id="category" name="category" required bind:value={income.Category}>
-            <option value="salary">Salary</option>
-            <option value="bonus">Bonus</option>
-            <option value="other">Other</option>
+            {#each categories as cat}
+                <option value={cat}>{cat}</option>
+            {/each}
             </select>
         </div>
         <div class="form-control">

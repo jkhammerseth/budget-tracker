@@ -127,6 +127,12 @@
     <a href="/categories" class:active={$path === '/categories'}>
       Categories
     </a>
+    <a href="/loans" class:active={$path === '/loans'}>
+      Loans
+    </a>
+    <a href="/assets" class:active={$path === '/assets'}>
+      Assets
+    </a>
 
   <div class="user-button-container">
     {#if $user.loggedIn}

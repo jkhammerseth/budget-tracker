@@ -1,6 +1,7 @@
 <script>
   import { fetchIncome } from '../routes/api/fetchIncome';
-  import { postIncome } from '../routes/api/addIncome';
+  import { postIncome, postListofIncomes } from '../routes/api/addIncome';
+  import Toast from './Toast.svelte';
 
   let name = '';
   let amount = 0;
@@ -19,47 +20,93 @@
     'Other'
   ];
 
-  //#TODO: Support for daily, weekly, and annual income
+  let message = '';
+  let theme = 'info'; // Possible values: 'success', 'error', 'info'
+  let duration = 3000;
+
   async function addIncome() {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = new Date(startDate); 
+    let end;
+    if (endDate) {
+        end = new Date(endDate);
+    }
+
+    const incomes = [];
 
     if (frequency === 'One-time') {
-      const income = {
+        incomes.push(createIncomeObject(start));
+    } else if (end) { 
+        let currentDate = new Date(start.getTime());
+
+        while (currentDate <= end) {
+            incomes.push(createIncomeObject(currentDate));
+            incrementDate(currentDate, frequency);
+        }
+    }
+
+    try {
+        let response;
+        if (incomes.length === 1) {
+            response = await postIncome(incomes[0]);
+        } else {
+            response = await postListofIncomes(incomes);
+        }
+
+        handleResponse(response);
+    } catch (error) {
+        console.error("Error adding income:", error);
+        message = "Error adding income";
+        theme = "error";
+    }
+
+    resetFormFields();
+    fetchIncome();
+}
+
+function createIncomeObject(date) {
+    return {
         Name: name,
         Amount: parseInt(amount, 10),
         Category: category,
         Frequency: frequency,
-        Date: start.toISOString()
-      };
-      postIncome(income);
-      fetchIncome();
-    } else {
-      const monthDiff = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth() + 1;
+        Date: date.toISOString()
+    };
+}
 
-      for (let i = 0; i < monthDiff; i++) {
-          const incomeDate = new Date(start.getFullYear(), start.getMonth() + i, start.getDate());
-
-          const income = {
-              Name: name,
-              Amount: parseInt(amount, 10),
-              Category: category,
-              Frequency: frequency,
-              Date: incomeDate.toISOString()
-          };
-          postIncome(income);
-        }
-    
-        name = '';
-        amount = 0;
-        category = '';
-        frequency = '';
-        startDate = '';
-        endDate = '';
-
-        fetchIncome();
-      }
+function incrementDate(date, frequency) {
+    switch (frequency) {
+        case 'Daily':
+            date.setDate(date.getDate() + 1);
+            break;
+        case 'Weekly':
+            date.setDate(date.getDate() + 7);
+            break;
+        case 'Monthly':
+            date.setMonth(date.getMonth() + 1);
+            break;
+        case 'Annually':
+            date.setFullYear(date.getFullYear() + 1);
+            break;
     }
+}
+
+function handleResponse(response) {
+    if (!response.ok) {
+        throw new Error("Failed to add income");
+    }
+    message = "Income added successfully!";
+    theme = "success";
+}
+
+function resetFormFields() {
+    name = '';
+    amount = 0;
+    category = '';
+    frequency = '';
+    startDate = '';
+    endDate = '';
+}
+
 </script>
 
 
@@ -160,4 +207,5 @@
   </div>
 {/if} 
 <button on:click={addIncome}>Add Income</button>
+<Toast {message} {theme} {duration} />
 </div>

@@ -54,10 +54,16 @@ func main() {
 		api.PUT("/users/expenses/:id", handler.UpdateExpense)
 		api.DELETE("/users/expenses/:id", handler.DeleteExpense)
 
-		api.POST("/users/incomes", handler.AddIncome)
+		api.POST("/users/incomes", handler.AddListIncome)
+		api.POST("/users/income", handler.AddIncome)
 		api.GET("/users/incomes", handler.GetIncomes)
 		api.PUT("/users/incomes/:id", handler.UpdateIncome)
 		api.DELETE("/users/incomes/:id", handler.DeleteIncome)
+
+		api.POST("/users/loan", handler.AddLoan)
+		api.GET("/users/loans", handler.GetLoan)
+		api.PUT("/users/loans/:id", handler.UpdateLoan)
+		api.DELETE("/users/loans/:id", handler.DeleteLoan)
 
 		api.GET("/auth/status", handler.CheckAuthStatus)
 

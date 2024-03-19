@@ -1,6 +1,7 @@
 <script>
     import { FetchExpenses } from '../routes/api/fetchExpenses';
-    import { postExpense } from '../routes/api/addExpense';
+    import { postExpense, postListofExpenses } from '../routes/api/addExpense';
+    import Toast from './Toast.svelte';
 
     let name = '';
     let amount = 0;
@@ -21,46 +22,97 @@
       'Miscellaneous'
     ];
 
-    //#TODO: Support for daily, weekly, and annual expenses
+    let message = '';
+    let theme = 'info'; // Possible values: 'success', 'error', 'info'
+    let duration = 3000;
+
     async function addExpense() {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+    const start = new Date(startDate); 
+    let end;
+    if (endDate) {
+        end = new Date(endDate);
+    }
 
-      if (frequency === 'One-time') {
-        const expense = {
-          Name: name,
-          Amount: parseInt(amount, 10),
-          Category: category,
-          Frequency: frequency,
-          Date: start.toISOString()
-        };
-        postExpense(expense);
-        FetchExpenses();
-      } else {
-        const monthDiff = (end.getFullYear() - start.getFullYear()) * 12 + end.getMonth() - start.getMonth() + 1;
+    const expenses = [];
 
-        for (let i = 0; i < monthDiff; i++) {
-            const expenseDate = new Date(start.getFullYear(), start.getMonth() + i, start.getDate());
+    if (frequency === 'One-time') {
+        expenses.push(createExpenseObject(start));
+    } else if (end) { 
+        let currentDate = new Date(start.getTime());
 
-            const expense = {
-                Name: name,
-                Amount: parseInt(amount, 10),
-                Category: category,
-                Frequency: frequency,
-                Date: expenseDate.toISOString()
-            };
-            postExpense(expense);
-          }
-          name = '';
-          amount = 0;
-          category = '';
-          frequency = '';
-          startDate = '';
-          endDate = '';
-
-          FetchExpenses();
+        while (currentDate <= end) {
+            expenses.push(createExpenseObject(currentDate));
+            incrementDate(currentDate, frequency);
         }
-      }
+    }
+
+    try {
+        let response;
+        if (expenses.length === 1) {
+            response = await postExpense(expenses[0]);
+            message = "Expense added successfully!";
+            theme = "success";
+        } else {
+            response = await postListofExpenses(expenses);
+            message = "All expenses added successfully!";
+            theme = "success";
+        }
+
+        handleResponse(response);
+    } catch (error) {
+        console.error("Error adding expense:", error);
+        message = "Error adding expense";
+        theme = "error";
+    }
+
+    resetFormFields();
+    FetchExpenses();
+}
+
+function createExpenseObject(date) {
+    return {
+        Name: name,
+        Amount: parseInt(amount, 10),
+        Category: category,
+        Frequency: frequency,
+        Date: date.toISOString()
+    };
+}
+
+function incrementDate(date, frequency) {
+    switch (frequency) {
+        case 'Daily':
+            date.setDate(date.getDate() + 1);
+            break;
+        case 'Weekly':
+            date.setDate(date.getDate() + 7);
+            break;
+        case 'Monthly':
+            date.setMonth(date.getMonth() + 1);
+            break;
+        case 'Annually':
+            date.setFullYear(date.getFullYear() + 1);
+            break;
+    }
+}
+
+function handleResponse(response) {
+    if (!response.ok) {
+        throw new Error("Failed to add expense");
+    }
+    message = "Expense added successfully!";
+    theme = "success";
+}
+
+function resetFormFields() {
+    name = '';
+    amount = 0;
+    category = '';
+    frequency = '';
+    startDate = '';
+    endDate = '';
+}
+
   </script>
   
   
@@ -161,4 +213,5 @@
     </div>
   {/if} 
   <button on:click={addExpense}>Add Expense</button>
+  <Toast {message} {theme} {duration} />
 </div>

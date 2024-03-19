@@ -1,7 +1,6 @@
-
- export async function postExpense(expense) {
+export async function postExpense(expense) {
     try {
-        const response = await fetch('http://localhost:8080/api/users/expenses', {
+        const response = await fetch('http://localhost:8080/api/users/expense', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -11,12 +10,30 @@
         });
 
         if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add expense');
+            throw new Error('Failed to add expense');
         }
-        console.log(JSON.stringify(expense))
-        console.log('Expense added successfully');
+        return response
     } catch (error) {
         console.error('Error adding expense:', error.message);
     }
+}
+
+export async function postListofExpenses(expenses) {
+    try {
+        const response = await fetch('http://localhost:8080/api/users/expenses', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(expenses),
+        credentials: 'include',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to add expenses');
+        }
+        return response;
+    } catch (error) {
+        console.error('Error adding expenses:', error.message);
     }
+}

@@ -1,7 +1,7 @@
 <script>
     import { onMount } from 'svelte';
     import { Chart, registerables } from 'chart.js';
-    import { filteredIncome } from '../stores/filteredincome';
+    import { filteredIncome } from "../stores/filteredIncome";
 
     
 

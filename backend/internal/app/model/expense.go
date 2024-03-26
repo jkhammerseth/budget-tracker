@@ -14,4 +14,5 @@ type Expense struct {
 	Paid      bool      `gorm:"type:boolean"`      // Use boolean for true/false values
 	Comment   string    `gorm:"type:varchar(255)"` // Define string length if necessary
 	UserID    uint      `gorm:"type:integer"`      // Ensure this matches the type of User.ID if it references it
+	LoanID    *uint     `gorm:"type:integer"`      // Ensure this matches the type of Loan.ID if it references it
 }

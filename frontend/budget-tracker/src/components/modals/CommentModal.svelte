@@ -1,5 +1,5 @@
 <script>
-    import { FetchExpenses } from "../routes/api/fetchExpenses";
+    import { FetchExpenses } from "../../routes/api/fetchExpenses";
     import { onMount, onDestroy } from "svelte";
 
     export let showModal = false;
@@ -79,7 +79,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000; 
+        z-index: 1000; /* Ensure it's above other content */
     }
 
     .modal-content {

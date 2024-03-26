@@ -21,15 +21,17 @@
   
   <style>
     .clock {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: var(--font-family);
+      border: 1px solid var(--component-border-color);
       font-size: 2rem;
       text-align: center;
       padding: 20px;
-      background: #3A87F2;
+      background: var(--primary-color);
       color: #fff;
       border-radius: 8px;
       width: 200px;
       margin: auto;
+      height: 2rem;
     }
   </style>
   

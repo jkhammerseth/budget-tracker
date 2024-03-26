@@ -19,7 +19,7 @@
       chart = new Chart(ctx, {
           type: 'bar',
           data: {
-              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+              labels: ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'October', 'November', 'Desember'],
               datasets: [{
                   label: 'Monthly Expenses',
                   data: dataByMonth,
@@ -69,16 +69,29 @@
 
 <style>
   canvas {
-      border-radius: 5px;
-      padding: 5px;
-      background: #E8EFF1;
-      border-style: solid;
-      border-color: black;
-      border-width: 1px;
-      border-radius: 10px;
-      font-family: 'Roboto', sans-serif;
-      margin-top: 40px;
-  }
+        border-radius: var(--component-border-radius);
+
+        background: var(--component-bg-color);
+        border-style: solid;
+        border-color: var(--component-border-color);
+        border-width: 1px;
+        border-radius: var(--component-border-radius);
+        font-family: var(--font-family);
+        margin-top: 40px;
+        height: auto;
+    }
+
+  .chart-container {
+        width: 100%;
+        max-width: 45rem; /* or any other max-width */
+        margin: auto;
+        height: 20rem;
+        }
+
 </style>
 
-<canvas id="expensesChart" height="213"></canvas>
+
+<div class="chart-container">
+    <canvas id="expensesChart"></canvas>
+  </div>
+  

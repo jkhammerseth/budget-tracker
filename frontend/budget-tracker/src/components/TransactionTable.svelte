@@ -1,18 +1,18 @@
 <script>
     import { onMount } from 'svelte';
-    import UpdateExpenseButton from './UpdateExpenseButton.svelte';
-    import DeleteExpenseButton from './DeleteExpenseButton.svelte';
+    import UpdateExpenseButton from './ui/UpdateExpenseButton.svelte';
+    import DeleteExpenseButton from './ui/DeleteExpenseButton.svelte';
     import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
     import { filteredExpenses } from '../stores/filteredExpenses';
-    import { filteredIncome } from '../stores/filteredincome';
+    import { filteredIncome } from '../stores/filteredIncome.js';
     import { fetchIncome } from '../routes/api/fetchIncome';
     import { FetchExpenses } from '../routes/api/fetchExpenses';
     import { derived } from 'svelte/store';
-    import AddCommentButton from './AddCommentButton.svelte';
-    import ExpenseStatusButton from './ExpenseStatusButton.svelte';
-    import IncomeStatusButton from './IncomeStatusButton.svelte';
-    import UpdateIncomeButton from './UpdateIncomeButton.svelte';
-    import DeleteIncomeButton from './DeleteIncomeButton.svelte';
+    import AddCommentButton from './ui/AddCommentButton.svelte';
+    import ExpenseStatusButton from './ui/ExpenseStatusButton.svelte';
+    import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
+    import UpdateIncomeButton from './ui/UpdateIncomeButton.svelte';
+    import DeleteIncomeButton from './ui/DeleteIncomeButton.svelte';
 
 
     let nameFilter = '';
@@ -115,7 +115,8 @@
 <table>
   <thead>
     <tr>
-      <th>Type</th> <!-- New column for Type -->
+      <th>...</th>
+      <th>Type</th> 
       <th>Name</th>
       <th>Amount</th>
       <th>Category</th>
@@ -127,27 +128,31 @@
   <tbody>
     {#each $mergedData as item}
       <tr class="{item.Type === 'Expense' ? 'expense-row' : 'income-row'}">
+        <td>
+          <input class="checkbox" type="checkbox" />
+        </td>
         <td>{item.Type}</td>
         <td>{item.Name}</td>
         <td>{formatAmount(item.Amount)}</td>
         <td>{item.Category}</td>
         <td>
           {#if item.Type === 'Expense'}
-            <ExpenseStatusButton {item}/>
-          {:else}
-            <!--<IncomeStatusButton {item}/>-->
+              <ExpenseStatusButton expense={item}/>
+          {:else if item.Type === 'Income'}
+            <IncomeStatusButton income={item}/>
           {/if}
         </td>
         <td>{fromISOString(item.Date)}</td>
         <td>
-          <AddCommentButton {item}/>
-            {#if item.Type === 'Income'}
-                <!--<UpdateIncomeButton {item}/>-->
-                <!--<DeleteIncomeButton {item}/>-->
-          {:else if item.Type === 'Expense'}
-            <UpdateExpenseButton {item}/>
-            <DeleteExpenseButton {item}/>
+          <AddCommentButton entry={item}/>
+          {#if item.Type === 'Expense'}
+            <UpdateExpenseButton expense={item}/>
+            <DeleteExpenseButton expense={item}/>
+          {:else if item.Type === 'Income'}
+            <UpdateIncomeButton income={item}/>
+            <DeleteIncomeButton income={item}/>
           {/if}
+            
         </td>
       </tr>
     {/each}

@@ -1,7 +1,7 @@
 <script>
     import FaRegComment from 'svelte-icons/fa/FaRegComment.svelte'
     import FaRegCommentDots from 'svelte-icons/fa/FaRegCommentDots.svelte'
-    import CommentModal from './CommentModal.svelte';
+    import CommentModal from '../modals/CommentModal.svelte';
 
     export let entry;
 
@@ -20,6 +20,7 @@
     on:focus={() => console.log('it has focuth')}
     on:blur={() => console.log('it has blurreth')}>
         <span class="icon"><FaRegCommentDots></FaRegCommentDots></span>
+        <span>Add comment</span>
     </button>
 {:else}
     <button title='Add Comment' class='icon-button' text='Add Comment' on:click={() => (showModal = true)}>

@@ -6,7 +6,7 @@
   import UpcomingExpenses from '../components/UpcomingExpenses.svelte';
   import Calendar from '../components/Calendar.svelte';
   import TotalBalance from '../components/TotalBalance.svelte';
-  import Clock from '../components/Clock.svelte';
+  import CalendarBig from '../components/CalendarBig.svelte';
 
   onMount(() => {
     checkAuthStatus();
@@ -14,6 +14,42 @@
 </script>
 
 <style>
+
+  .welcome {
+    max-width: 400px;
+    padding: 50px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    margin: 200px auto;
+    align-items: center;
+  }
+  .title {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+
+  .description {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+  }
+
+  .button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    font-size: 1em;
+    background-color: #3A87F2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 150px;
+  }
+
   .dashboard-container {
     display: grid;
     grid-template-columns: 3fr 1fr 1fr; /* Adjust based on your content and preference */
@@ -21,7 +57,7 @@
     gap: 20px;
     padding: 20px;
     margin: 40px auto;
-    max-width: 1400px;
+    max-width: var(--max-width);
   }
 
   .greeting-container, .balance, .expense-by-category-container, .upcoming-expenses-container {
@@ -84,7 +120,7 @@
     
   </div>
     <div class="balance">
-      <TotalBalance/>
+      <CalendarBig />
     </div>
     <div class="calendar-container">
       <Calendar />
@@ -94,11 +130,13 @@
     </div>
     
   {:else}
-    <div class="header">Welcome to Budget Tracker</div>
+  <div class="welcome">
+    <div class="title">Welcome to Budget Tracker</div>
     <p class="description">
       Take control of your finances with our easy-to-use budgeting tool. Track your expenses, set budgets, and achieve your financial goals.
     </p>
     <button class="button" on:click={() => (window.location.href = '/login')}>Log In</button>
     <button class="button" on:click={() => (window.location.href = '/signup')}>Sign Up</button>
+  </div>
   {/if}
 </div>

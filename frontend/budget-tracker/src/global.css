@@ -1,0 +1,35 @@
+:root {
+    /* Color scheme */
+    --background-color: #f5f5f5;
+    --component-bg-color: #E8EFF1;
+    --component-border-color: black;
+    --component-border-radius: 10px;
+    --component-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --component-text-color: black;
+
+    --font-family: 'Roboto', sans-serif;
+
+    --primary-button-color: #3A87F2;
+    --primary-button-text-color: white;
+    --primary-button-hover-color: #0056b3;
+
+
+    --primary-color: #3A87F2;
+    --success: #008000;
+    --danger: #FF0000;
+    --warning: #f39c12;
+    --info: #3498db;
+    --background-color: #ecf0f1;
+    --text-color: #333;
+  
+    /* Font family */
+    --font-primary: 'Roboto', sans-serif;
+    
+    /* Font sizes */
+    --font-size-base: 16px;
+    --font-size-large: 20px;
+    --font-size-small: 14px;
+
+    --max-width: 80%;
+  }
+  

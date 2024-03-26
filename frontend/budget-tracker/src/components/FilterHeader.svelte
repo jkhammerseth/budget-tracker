@@ -145,24 +145,25 @@
     }
 
     .month {
-        font-size: 1.5em;
+        font-size: 1.5rem;
         margin-right: 20px;
     }
 
     .year {
-        font-size: 1.5em;
+        font-size: 1.5rem;
         margin-right: 20px;
     }
 
     .year.alone {
-        font-size: 1.5em;
+        font-size: 1.5rem;
     }
     .header {
         display: flex;
-        font-size: 1.5em;
-        margin-bottom: 20px;
+        font-size: 1.5rem;
+        font-family: var(--font-family);
+        margin-bottom: 10px;
         color: black;
-        background-color: #E8EFF1;
+        background-color: var(--component-bg-color);
         justify-content: center;
         align-items: center;
         padding: 20px;
@@ -172,6 +173,7 @@
         z-index: 1000;
         height: 40px;
         justify-content: center;
+        border-bottom: 1px solid var(--component-border-color);
     }
 
     .header-container {
@@ -182,5 +184,14 @@
 
     .header-null {
         display: none;
+    }
+
+    button {
+        background-color: var(--primary-button-color);
+        color: white;
+        padding: 5px;
+        border-radius: 5px;
+        cursor: pointer;
+        border: 0;
     }
 </style>

@@ -1,5 +1,5 @@
 <script>
-    import DeleteExpenseModal from './DeleteExpenseModal.svelte';
+    import DeleteExpenseModal from '../modals/DeleteExpenseModal.svelte';
     import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
 
     export let expense;

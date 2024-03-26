@@ -1,13 +1,13 @@
 <script>
   import { filteredIncome } from '../stores/filteredIncome';
   import { onMount } from 'svelte';
-  import UpdateIncomeButton from './UpdateIncomeButton.svelte';
-  import DeleteIncomeButton from './DeleteIncomeButton.svelte';
+  import UpdateIncomeButton from './ui/UpdateIncomeButton.svelte';
+  import DeleteIncomeButton from './ui/DeleteIncomeButton.svelte';
   import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
   import { fetchIncome } from '../routes/api/fetchIncome';
   import { derived } from 'svelte/store';
-  import AddCommentButton from './AddCommentButton.svelte';
-  import IncomeStatusButton from './IncomeStatusButton.svelte';
+  import AddCommentButton from './ui/AddCommentButton.svelte';
+  import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
 
 
   let nameFilter = '';
@@ -55,7 +55,7 @@
 <style>
   .container {
     max-width: full-width;
-    font-family: 'Roboto', sans-serif;
+    font-family: var(--font-family);
     border-radius: 20px;
     margin: 40px auto;
     margin-top: 20px;
@@ -66,10 +66,8 @@
     align-items: center;
     gap: 10px;
     padding: 10px;
-    background-color: #E8EFF1;
-    border: black;
-    border-style: solid;
-    border-width: 1px;
+    background-color: var(--component-bg-color);
+    border: 1px solid black;
     border-radius: 10px;
     border-bottom: none;
     border-bottom-left-radius: 0;
@@ -113,16 +111,14 @@
   }
 
   table {
-    width: 100%;
+    width: 42.86rem;
     border-collapse: separate;
     border-spacing: 0;
-    background-color: #E8EFF1;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--component-bg-color);
+    box-shadow: var(--componet-box-shadow);
     font-family: 'Roboto', sans-serif;
     overflow: hidden;
-    border-style: solid;
-    border-color: black;
-    border-width: 1px;
+    border: 1px solid black;
   }
 
   th, td {

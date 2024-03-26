@@ -3,6 +3,8 @@
   import { postIncome, postListofIncomes } from '../routes/api/addIncome';
   import Toast from './Toast.svelte';
 
+  let componentView = 'single';
+
   let name = '';
   let amount = 0;
   let category = '';
@@ -112,20 +114,20 @@ function resetFormFields() {
 
 <style>
   .form-container {
-    width: 400px;
+    width: 18rem;
     margin: auto;
     padding: 20px;
-    background-color: #E8EFF1;
+    background-color: var(--component-bg-color);
     border-style: solid;
-    border-color: black;
+    border-color: var(--component-border-color);
     border-width: 1px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    font-family: 'Roboto', sans-serif;
+    border-radius: var(--component-border-radius);
+    box-shadow: var(--component-box-shadow);
+    font-family: var(--font-family);
   }
 
   h2 {
-    color: #333;
+    color: var(--text-color);
     text-align: center;
     margin-bottom: 20px;
   }
@@ -153,8 +155,8 @@ function resetFormFields() {
     width: 100%;
     padding: 10px;
     margin-top: 20px;
-    background-color: #3A87F2;
-    color: white;
+    background-color: var(--primary-button-color);
+    color: var(--primary-button-text-color);
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -162,7 +164,7 @@ function resetFormFields() {
   }
 
   button:hover {
-    background-color: #0056b3;
+    background-color: var(--primary-button-hover-color);
   }
 
   @media (max-width: 480px) {

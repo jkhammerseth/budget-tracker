@@ -1,9 +1,9 @@
 <script>
-    import { fetchIncome } from "../routes/api/fetchIncome";
+    import { FetchExpenses } from "../../routes/api/fetchExpenses";
     import { onMount, onDestroy } from "svelte";
 
     export let showModal = false;
-    export let income;
+    export let expense;
 
     let modalContent;
 
@@ -17,23 +17,23 @@
         }
     }
 
-    async function handleDelete(incomeId) {
+    async function handleDelete(expenseId) {
     try {
-      const response = await fetch(`http://localhost:8080/api/users/incomes/${incomeId}`, {
+      const response = await fetch(`http://localhost:8080/api/users/expenses/${expenseId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete income');
+        throw new Error(errorData.message || 'Failed to delete expense');
       }
 
-      console.log('Income deleted successfully');
-      await fetchIncome();
+      console.log('Expense deleted successfully');
+      await FetchExpenses();
       close();
     } catch (error) {
-      console.error('Error deleting income:', error.message);
+      console.error('Error deleting expense:', error.message);
       // TODO: Update UI to show error message to the user here
     }
   }
@@ -54,11 +54,11 @@
             <!-- svelte-ignore a11y-no-static-element-interactions -->
     <!-- svelte-ignore a11y-no-noninteractive-tabindex -->
     <div bind:this={modalContent} class="modal-content" on:click|stopPropagation tabindex="0">
-            <h2>Delete Income</h2>
-            <p>Are you sure you want to delete this income?</p>
+            <h2>Delete Expense</h2>
+            <p>Are you sure you want to delete this expense?</p>
             <div class="modal-buttons">
                 <div class="button-group">
-                    <button class="delete-button" type="submit" on:click={handleDelete(income.ID), close}>Delete</button>
+                    <button class="delete-button" type="submit" on:click={handleDelete(expense.ID), close}>Delete</button>
                     <button class="cancel-button" type="button" on:click={close}>Cancel</button>
                 </div>
             </div>
@@ -79,7 +79,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000; /* Ensure it's above other content */
+        z-index: 1000; 
     }
 
     .modal-content {

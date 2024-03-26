@@ -95,6 +95,7 @@ func UpdateExpense(c *gin.Context) {
 		Date     *string  `json:"date"`
 		Comment  *string  `json:"comment"`
 		Paid     *bool    `json:"paid"`
+		LoanID   *uint    `json:"loanID"`
 	}
 	if err := c.ShouldBindJSON(&updatedExpense); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -131,6 +132,9 @@ func UpdateExpense(c *gin.Context) {
 	}
 	if updatedExpense.Paid != nil {
 		expense.Paid = *updatedExpense.Paid
+	}
+	if updatedExpense.LoanID != nil {
+		expense.LoanID = updatedExpense.LoanID
 	}
 
 	if result := db.Save(&expense); result.Error != nil {

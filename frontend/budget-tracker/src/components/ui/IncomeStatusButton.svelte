@@ -1,5 +1,5 @@
 <script>
-    import { fetchIncome } from "../routes/api/fetchIncome";
+    import { fetchIncome } from "../../routes/api/fetchIncome";
 
     export let income;
 
@@ -52,11 +52,11 @@
 
     .income-status-button--paid {
         background-color: transparent;
-        color: #008000;
+        color: var(--success);
     }
 
     .income-status-button--not-paid {
         background-color: transparent;
-        color: #FF0000;
+        color: var(--danger);
     }
 </style>

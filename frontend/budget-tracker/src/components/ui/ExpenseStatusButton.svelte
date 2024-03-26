@@ -1,5 +1,5 @@
 <script>
-    import { FetchExpenses } from "../routes/api/fetchExpenses";
+    import { FetchExpenses } from "../../routes/api/fetchExpenses";
 
     export let expense;
 
@@ -53,11 +53,11 @@
 
     .expense-status-button--paid {
         background-color: transparent;
-        color: #008000;
+        color: var(--success);
     }
 
     .expense-status-button--not-paid {
         background-color: transparent;
-        color: #FF0000;
+        color: var(--danger);
     }
 </style>

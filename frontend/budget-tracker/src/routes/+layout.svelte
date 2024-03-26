@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Sidenav from "../components/Sidenav.svelte";
   import FilterHeader from "../components/FilterHeader.svelte";
+  import '../global.css'
 
   onMount(() => {
     document.body.style.backgroundColor = '#FFFFFF';
@@ -36,3 +37,5 @@
     </main>
   </div>
 </div>
+<!--<FilterNav />-->
+

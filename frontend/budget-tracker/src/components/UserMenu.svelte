@@ -3,7 +3,7 @@
     import FaCog from 'svelte-icons/fa/FaCog.svelte'
     import FaSignOutAlt from 'svelte-icons/fa/FaSignOutAlt.svelte'
     import { fade } from 'svelte/transition';
-    import SettingsModal from "./SettingsModal.svelte";
+    import SettingsModal from "./modals/SettingsModal.svelte";
     import { onMount, onDestroy } from 'svelte';
 
     let showModal = false;

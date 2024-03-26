@@ -26,7 +26,7 @@
         chart = new Chart(ctx, {
           type: 'bar', 
           data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'October', 'November', 'December'],
             datasets: [{
               label: 'Monthly Income',
               data: dataByMonth,
@@ -53,17 +53,27 @@
 </script>
 
 <style>
-  canvas {
-    border-radius: 5px;
-    padding: 5px;
-    background: #E8EFF1;
-    border-style: solid;
-      border-color: black;
-      border-width: 1px;
-      border-radius: 10px;
-      font-family: 'Roboto', sans-serif;
-      margin-top: 40px;
-  }
+   canvas {
+        border-radius: var(--component-border-radius);
+
+        background: var(--component-bg-color);
+        border-style: solid;
+        border-color: var(--component-border-color);
+        border-width: 1px;
+        border-radius: var(--component-border-radius);
+        font-family: var(--font-family);
+        margin-top: 40px;
+        height: auto;
+    }
+
+  .chart-container {
+        width: 100%;
+        max-width: 60rem;
+        margin: auto;
+        height: 24rem;
+        }
 </style>
 
-<canvas id="incomeChart" height="213" key={key}></canvas>
+<div class="chart-container">
+    <canvas id="incomeChart" height="213" key={key}></canvas>
+</div>

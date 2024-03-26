@@ -1,6 +1,6 @@
 <script>
     import FaTimes from 'svelte-icons/fa/FaTimes.svelte'
-    import Profile from './Profile.svelte';
+    import Profile from '../Profile.svelte';
 
     export let show = false;
 

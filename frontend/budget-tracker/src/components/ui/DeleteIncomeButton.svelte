@@ -1,17 +1,17 @@
 <script>
-    import UpdateIncomeModal from './UpdateIncomeModal.svelte';
-    import FaRegEdit from 'svelte-icons/fa/FaRegEdit.svelte'
-    
+    import DeleteIncomeModal from '../modals/DeleteIncomeModal.svelte';
+    import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
+
     export let income;
 
     let showModal = false;
 </script>
 
-<button title='Edit' class='icon-button' text='Edit' on:click={() => (showModal = true)}>
-    <span class="icon"><FaRegEdit></FaRegEdit></span>
+<button title='Delete' class='icon-button' text='Delete' on:click={() => (showModal = true)}>
+    <span class="icon"><FaRegTrashAlt/></span>
 </button>
 
-<UpdateIncomeModal income={income} date={income.Date} bind:showModal/>
+<DeleteIncomeModal income={income} bind:showModal/>
 
 <style>
     .icon-button {
@@ -32,7 +32,7 @@
   }
 
   .icon:hover {
-    color: #3A87F2; 
+    color: #e74c3c;
   }
 
   .icon:active {

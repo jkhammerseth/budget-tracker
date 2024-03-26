@@ -1,5 +1,5 @@
 <script>
-    import UpdateExpenseModal from './UpdateExpenseModal.svelte';
+    import UpdateExpenseModal from '../modals/UpdateExpenseModal.svelte';
     import FaRegEdit from 'svelte-icons/fa/FaRegEdit.svelte'
     
     export let expense;

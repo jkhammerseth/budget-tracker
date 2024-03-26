@@ -13,7 +13,6 @@ export async function postIncome(income) {
             throw new Error('Failed to add income');
         }
 
-        console.log('Income added successfully');
         return response;
     } catch (error) {
         console.error('Error adding income:', error.message);
@@ -35,8 +34,6 @@ export async function postListofIncomes(incomes) {
         if (!response.ok) {
             throw new Error('Failed to add incomes');
         }
-
-        console.log('Incomes added successfully');
         return response;
     } catch (error) {
         console.error('Error adding incomes:', error.message);

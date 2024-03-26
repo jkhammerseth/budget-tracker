@@ -5,17 +5,17 @@
       position: fixed;
       z-index: 1;
       top: 0;
-      left: 0;
+      right: 0;
       background: #9FB6D0;
       overflow-x: hidden;
       padding-top: 20px;
     }
   
     .sidenav h1 {
-      color: var(--text-color);
+      color: black;
       text-align: center;
       margin-bottom: 30px;
-      font-family: var(--font-family);
+      font-family: 'Roboto', sans-serif;
       font-size: 34px; 
       font-weight: 300; 
     }
@@ -24,7 +24,7 @@
       padding: 10px 20px; 
       text-decoration: none;
       font-size: 20px;
-      color: var(--text-color);
+      color: black;
       display: flex;
       align-items: center;
       gap: 10px; 
@@ -37,7 +37,7 @@
       bottom: 20px;
       width: 100%;
       padding-bottom: 10px;
-      font-family: var(--font-family);
+      font-family: 'Roboto', sans-serif;
     }
 
     .icon {
@@ -61,25 +61,22 @@
       margin-bottom: 0;
  
       background-color: transparent; 
-      color: var(--text-color);
+      color: black;
       border: none;
       border-radius: 10px;
       cursor: pointer;
     }
 
     .user-button.active {
-      background-color: var(--primary-button-color); 
-      
+      background-color: #2980b9; 
     }
   
     .sidenav a:hover {
-      background-color: var(--primary-button-hover-color); 
-      color: var(--primary-button-text-color);
+      background-color: #6d9dd2; 
     }
   
     .sidenav .active {
-      background-color: var(--primary-button-color); 
-      color: var(--primary-button-text-color);
+      background-color: #3A87F2; 
     }
   </style>
 
@@ -96,14 +93,6 @@
   import Calendar from './Calendar.svelte';
 
 
-    let showMenu = false;
-  
-    // Derived store to get the current path
-    const path = derived(page, $page => $page.url.pathname);
-  
-
-
-
 
   onMount(() => {
     checkAuthStatus();
@@ -115,44 +104,6 @@
   </script>
   
   <div class="sidenav">
-    <h1>Budget Tracker</h1>
-    <a href="/" class:active={$path === '/'}>
-      Home
-    </a>
-    <a href="/dashboard" class:active={$path === '/dashboard'}>
-      Dashboard
-    </a>
-    <a href="/expenses" class:active={$path === '/expenses'}>
-      Expenses
-    </a>
-    <a href="/income" class:active={$path === '/income'}>
-      Income
-    </a>
-    <a href="/categories" class:active={$path === '/categories'}>
-      Categories
-    </a>
-    <a href="/loans" class:active={$path === '/loans'}>
-      Loans
-    </a>
-    <a href="/assets" class:active={$path === '/assets'}>
-      Assets
-    </a>
-
-  <div class="user-button-container">
-    {#if $user.loggedIn}
-    <button class="user-button {showMenu ? 'active' : ''}" on:click={() => showMenu = !showMenu}>
-        <span class="icon"><FaRegUserCircle/></span>
-        <span class="full-name">{$user.firstName + ' ' + $user.lastName}</span>
-      </button>
-      {:else}
-      <button class="user-button" on:click={goToLogin}>
-        <span class="icon"><FaUserAltSlash/></span>
-        <span class="full-name">Sign In</span>
-      </button>
-      {/if}
-    
-    <UserMenu show={showMenu} />
-  </div>
-   
+    <Calendar />
   </div>
   

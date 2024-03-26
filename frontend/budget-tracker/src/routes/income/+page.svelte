@@ -3,102 +3,79 @@
     import IncomeTable from "../../components/IncomeTable.svelte";
     import AddIncome from "../../components/AddIncome.svelte";
     import MonthlyIncomeGraph from "../../components/MonthlyIncomeGraph.svelte";
+  import TotalIncome from "../../components/income/TotalIncome.svelte";
 </script>
 
 <style>
 
     .dashboard-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: auto auto;
+        display: flex;
+        flex-wrap: wrap;
         gap: 20px;
         padding: 40px;
         margin: 0 auto;
-        max-width: 1400px;
+
+        
+        max-width: var(--max-width);
     }
 
+    .graph-and-stuff {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .info {
+        display: flex;
+        width: 43rem;
+        flex-direction: row;
+        gap: 20px;
+    }
 
     .add-income-container,
     .calendar-container,
+    .clock-container,
     .bar-chart-container,
     .budget-table-container {
-        background: #FFFFFF;
-        padding: 20px;
-        background-color: transparent;
-        
+        background-color: transparent;   
     }
 
     .bar-chart-container {
-        grid-column: 1 / 3;
-        grid-row: 1;
+        width: 43rem;
+        
     }
+     
 
-    .calendar-container {
-        grid-column: 3 / 4;
-        grid-row: 1;
-    }
-
-
-    .add-income-container {
-        grid-column: 3 / 4;
-        grid-row: 2;
-        text-align: right;
-        align-items: center;
-    }
-
-
-    .budget-table-container {
-        grid-column: 1 / 3;
-        grid-row: 2 / 4;
-        padding-top: 0%;
-    }
-
-   
-
-    @media (max-width: 1400px) {
-        .dashboard-container {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto auto auto auto;
-        }
-
-        .calendar-container {
-            grid-column: 1 / 2;
-            grid-row: 1;
-        }
-
-        .bar-chart-container {
-            grid-column: 1 / 2;
-            grid-row: 2;
-        }
-
-        .add-income-container {
-            grid-column: 1 / 2;
-            grid-row: 3;
-            text-align: center;
-        }
-
-        .budget-table-container {
-            grid-column: 1 / 2;
-            grid-row: 4;
-        }
-    }
 </style>
 
 
 <div class="dashboard-container">
+    <div class="graph-and-stuff">
     <div class="bar-chart-container">
-        <MonthlyIncomeGraph />
+        <MonthlyIncomeGraph/>
     </div>
-   
-    <div class="add-income-container">
-        <AddIncome />
+    <div class="info">
+    <div class="clock-container">
+        <TotalIncome />
     </div>
- 
+    <div class="total-income-container">
+        <TotalIncome />
+    </div>
+    <div class="total-income-container">
+        <TotalIncome />
+    </div>
+</div>
+</div>
+    <div class="calendar-container">
+        <Calendar />
+    </div> 
     <div class="budget-table-container">
         <IncomeTable />
     </div>
-    <div class="calendar-container">
-        <Calendar />
+    <div class="add-income-container">
+        <AddIncome />
     </div>
 
 </div>
+

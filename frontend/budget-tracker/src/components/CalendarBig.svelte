@@ -4,6 +4,7 @@
     import { onMount } from 'svelte';
     import { get } from 'svelte/store';
     import { selectionMode, selectedYear, selectedMonth, selectedStartDate, selectedEndDate, selectedDay } from '../stores/selectionMode';
+    import { expenses } from '../stores/expenses';
     
 
     function clearSelection() {
@@ -80,9 +81,6 @@
             updateCalendar(); 
         }
     }
-
-
-    
   
     function selectDate(date) {
     const currentMode = get(selectionMode);
@@ -205,47 +203,128 @@
       updateCalendar();
     }
 
+    function formatDate(date) {
+        const d = new Date(date);
+        return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    }
+
+    // Convert selectedDate to the simplified format for comparison
+    $: formattedSelectedDate = formatDate(selectedDate);
+
+    function toDisplayDate(date) {
+        const locale = "nb-NO";
+
+        const year = date.getFullYear()
+        const monthName = date.toLocaleString(locale, { month: "long" });
+        const day = date.getDate();
+        return `${day} ${monthName} ${year}`;
+    }
+
   </script>
   
   <style>
     .calendar-box {
-      width: 100%;
-      max-width: 17rem;
-      margin-top: 40px;
-      padding: 20px;
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        height: 100%;
+        max-width: 50rem;
+        max-height: 40rem;
+        margin-top: 40px;
 
-      background-color: var(--component-bg-color);
-      border-style: solid;
-      border-color: var(--component-border-color);
-      border-width: 1px;
-      border-radius: var(--component-border-radius);
-      box-shadow: var(--component-box-shadow);
-      font-family: var(--font-family);
+
+        background-color: var(--component-bg-color);
+        border: 1px solid var(--component-border-color);
+        border-radius: var(--component-border-radius);
+        box-shadow: var(--component-box-shadow);
+        font-family: var(--font-family);
+    }
+
+    .day-info {
+        display: flex;
+        flex-direction: column;
+        align-items: left;
+        width: 70%;
+        margin: 1rem;
+        padding: 0rem;
+    }
+
+    .date {
+        font-size: 1.5rem;
+
+    }
+
+    .expenses-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .expense-item {
+        display: flex;
+        flex-direction: column;
+        padding: 5px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .expense-name {
+        font-size: 1rem;
+        font-weight: bold;
+    }
+
+    .expense-amount {
+        font-size: 1rem;
+    }
+
+    .day-name {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+
+
+    .display-date {
+        display: flex;
+        flex-direction: column;
+        align-items: left;
+        margin-bottom: 1rem;
+        margin-top: 2rem;
+    }
+    .calendar-full {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        max-width: 50rem;
+        max-height: 50rem;
+        padding: 20px;
+
+        background-color: var(--component-bg-color);
+
+        border-radius: var(--component-border-radius);
+        box-shadow: var(--component-box-shadow);
+        font-family: var(--font-family);
     }
 
     .calendar-container {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      grid-gap: 4px;
-      padding-top: 5px;
-      background-color: var(--component-bg-color);
-
-
-      
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-gap: 4px;
+        padding-top: 5px;
+        background-color: var(--component-bg-color);      
     }
     .calendar-months, .calendar-years {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      padding-left: 10px;
-      padding-right: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .calendar-days {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        text-align: center;
+        text-align: left;
         font-size: 12px; 
         color: var(--text-color);
         font-weight: bold;
@@ -281,8 +360,9 @@
     
     .day {
         display: flex;
-        align-items: center;
-        justify-content: center;
+        align-items: left;
+        justify-content: left;
+        height: 4rem;
         padding: 10px;
         background: transparent;
         border-radius: 10px;
@@ -349,27 +429,45 @@
 
 
 
-    .range-button, .clear-button {
+    .clear-button, .add-expense {
         background-color: var(--primary-button-color);
         color: white;
-        padding: 5px;
+        padding: 0.7rem;
         border-radius: 5px;
         cursor: pointer;
         border: 0;
     }
 
-    .range-button:hover, .clear-button:hover {
+    .clear-button:hover, .add-expense:hover {
         background-color: #68a1f1;
-    }
-
-    .range-button.active {
-        background-color: var(--primary-button-hover-color);
-        color: var(--primary-button-text-color);
     }
 
   </style>
   
   <div class="calendar-box">
+    <div class="day-info">
+        <div class="display-date">
+            <span class="day-name">{selectedDate.toLocaleString("nb-NO", { weekday: "long" })},</span>
+            <span class="date">{toDisplayDate(selectedDate)}</span>
+        </div>
+        <div>
+        {#if $expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate).length === 0}
+            <p>No expenses this date.</p>
+        {:else}
+            <p>{$expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate).length} expenses</p>
+            <ul class="expenses-list">
+                {#each $expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate) as expense}
+                    <li class="expense-item">
+                        <span class="expense-name">{expense.Name}</span>
+                        <span class="expense-amount">{expense.Amount} kr</span>
+                    </li>
+                {/each}
+            </ul>
+        {/if}
+    </div>
+        <button class="add-expense">Add expense</button>
+    </div>
+    <div class="calendar-full">
     <div class="calendar-controls">
       <div class="calendar-months">
         <button class="icon-button" on:click={previousMonth}>
@@ -415,10 +513,9 @@
     </div>
   </div>
     <div class="dates-below">
-
-    <button class="range-button {$selectionMode === 'range' ? 'active' : ''}" on:click={() => toggleSelectionMode('range')}>Range</button>
-    <button class="clear-button" on:click={() => clearSelection()}>Clear</button>
+    <button class="clear-button" on:click={() => clearSelection()}>Today</button>
     </div>  
+</div>
   </div>
   
  

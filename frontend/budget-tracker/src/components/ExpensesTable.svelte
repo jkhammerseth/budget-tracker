@@ -1,57 +1,58 @@
 <script>
-    import { filteredExpenses } from '../stores/filteredExpenses';
-    import { onMount } from 'svelte';
-    import UpdateExpenseButton from './UpdateExpenseButton.svelte';
-    import DeleteExpenseButton from './DeleteExpenseButton.svelte';
-    import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
-    import { FetchExpenses } from '../routes/api/fetchExpenses';
-    import { derived } from 'svelte/store';
-    import AddCommentButton from './AddCommentButton.svelte';
-    import ExpenseStatusButton from './ExpenseStatusButton.svelte';
+  import { filteredExpenses } from '../stores/filteredExpenses';
+  import { onMount } from 'svelte';
+  import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte';
+  import { FetchExpenses } from '../routes/api/fetchExpenses';
+  import { derived } from 'svelte/store';
+  import ExpenseStatusButton from './ui/ExpenseStatusButton.svelte';
+  import ExpenseActionMenu from './ExpenseActionMenu.svelte';
 
+  function toggleMenu(expense) {
+    menuStates[expense] = !menuStates[expense];
+    menuStates = { ...menuStates };
+  }
 
-    let nameFilter = '';
-    let sortKey = 'date';
-    let sortOrder = 'asc';
+  let menuStates = {};
 
-    const filteredSortedExpenses = derived(filteredExpenses, $filteredExpenses => {
-      return $filteredExpenses
-        .filter(expense => expense.Name.toLowerCase().includes(nameFilter.toLowerCase()))
-        .sort((a, b) => {
-          let comparison = 0;
-          if (a[sortKey] < b[sortKey]) {
-            comparison = -1;
-          } else if (a[sortKey] > b[sortKey]) {
-            comparison = 1;
-          }
-          return sortOrder === 'asc' ? comparison : -comparison;
-        });
+  let nameFilter = '';
+  let sortKey = 'date';
+  let sortOrder = 'asc';
+
+  const filteredSortedExpenses = derived(filteredExpenses, $filteredExpenses => {
+    return $filteredExpenses
+      .filter(expense => expense.Name.toLowerCase().includes(nameFilter.toLowerCase()))
+      .sort((a, b) => {
+        let comparison = 0;
+        if (a[sortKey] < b[sortKey]) {
+          comparison = -1;
+        } else if (a[sortKey] > b[sortKey]) {
+          comparison = 1;
+        }
+        return sortOrder === 'asc' ? comparison : -comparison;
+      });
   });
-    
-    onMount(FetchExpenses);
 
-    function formatAmount(amount) {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NOK' }).format(amount);
-    }
+  onMount(FetchExpenses);
 
-    function resetFilter() {
+  function formatAmount(amount) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NOK' }).format(amount);
+  }
+
+  function resetFilter() {
       nameFilter = '';
       sortKey = 'date';
       sortOrder = 'asc';
       FetchExpenses();
     }
 
-    function fromISOString(isoString) {
+  function fromISOString(isoString) {
     const date = new Date(isoString);
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
     const year = date.getFullYear().toString().substr(-2); 
-
-    // Formatting the date as DD.MM.YY
     return `${day}.${month}.${year}`;
-    }
-
-  </script>
+  }
+</script>
 
 <div class="container">
   <div class="filter-sort-container">
@@ -78,17 +79,21 @@
     <table>
       <thead>
         <tr>
+          <th>...</th>
           <th>Name</th>
           <th>Amount</th>
           <th>Category</th>
           <th>Status</th>
           <th>Date</th>
-          <th>Actions</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {#each $filteredSortedExpenses as expense}
           <tr>
+            <td>
+              <input class="checkbox" type="checkbox" />
+            </td>
             <td>
               {expense.Name}
             </td>
@@ -99,9 +104,12 @@
             </td>
             <td>{fromISOString(expense.Date)}</td>
             <td>
-              <AddCommentButton entry={expense}/>
-              <UpdateExpenseButton {expense}/>
-              <DeleteExpenseButton {expense}/>
+              <button class="dots" on:click={() => toggleMenu(expense)}>
+                <span class="icon">...</span>
+              </button>
+              {#if menuStates[expense]}
+                <ExpenseActionMenu expense={expense} />
+              {/if}
             </td>
           </tr>
         {/each}
@@ -117,23 +125,23 @@
   
   <style>
     .container {
-      max-width: full-width;
-      font-family: 'Roboto', sans-serif;
-      border-radius: 20px;
-      margin: 40px auto;
-      margin-top: 20px;
+      max-width: 100%;
+      font-family: var(--font-family);
+      border-radius: var(--component-border-radius);
+
     }
 
     .filter-sort-container {
       display: flex;
       align-items: center;
+      width: 41.5rem;
       gap: 10px;
       padding: 10px;
-      background-color: #E8EFF1;
-      border: black;
+      background-color: var(--component-bg-color);
+      border: var(--component-border-color);
       border-style: solid;
       border-width: 1px;
-      border-radius: 10px;
+      border-radius: var(--component-border-radius);
       border-bottom: none;
       border-bottom-left-radius: 0;
       border-bottom-right-radius: 0;
@@ -153,14 +161,14 @@
 
     .apply-filter-button, .icon-button {
       cursor: pointer; 
-      background-color: #3A87F2;
-      color: white;
+      background-color: var(--primary-button-color);
+      color: var(--primary-button-text-color);
       border: none; 
       transition: background-color 0.2s;
     }
 
     .apply-filter-button:hover {
-      background-color: #2a6db2;
+      background-color: var(--primary-button-hover-color);
     }
 
 
@@ -174,28 +182,33 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
+
+    .checkbox {
+      width: 16px;
+      height: 16px;
+    }
   
     table {
-      width: 100%;
+      width: 42.86rem;
       border-collapse: separate;
       border-spacing: 0;
-      background-color: #E8EFF1;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      font-family: 'Roboto', sans-serif;
+      background-color: var(--component-bg-color);
+      box-shadow: var(--component-box-shadow);
+      font-family: var(--font-family);
       overflow: hidden;
       border-style: solid;
-      border-color: black;
+      border-color: var(--component-border-color);
       border-width: 1px;
     }
   
     th, td {
-      padding: 12px 15px; 
+      padding: 10px 12px; 
       text-align: left;
       border-bottom: solid 1px #ddd;
     }
   
     th {
-      background-color: #3A87F2;
+      background-color: var(--primary-color);
       color: white;
       font-weight: normal;
     }
@@ -207,10 +220,7 @@
     tr:last-child td {
       border-bottom: none;
     }
-  
-    tr:nth-child(odd) {
-      background-color: #E8EFF1;
-    }
+
     .icon-button {
       background: none;
       border: none;
@@ -220,18 +230,30 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 16px;
-      width: 16px;
+      height: 46px;
+      width: 46px;
+  }
+
+  .dots {
+      background: none;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      outline: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
   }
 
   .icon {
-      width: 16px; 
-      height: 16px;
-      color: #333; 
+      font-size: 16px;
+      line-height: 1.5;
+      color: black; 
   }
 
   .icon:hover {
-      color: #e74c3c;
+      color: #3A87F2;
   }
 
   .icon:active {

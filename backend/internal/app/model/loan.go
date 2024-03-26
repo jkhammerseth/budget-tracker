@@ -18,9 +18,8 @@ type Loan struct {
 	Comment        string `gorm:"type:varchar(255)"` // Define string length if necessary
 	Remaining      float64
 	Type           string `gorm:"type:varchar(50)"` // Mortgage, Car, Student, Personal
+	Status         string `gorm:"type:varchar(50)"` // Active, Paid, Overdue
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      gorm.DeletedAt `gorm:"index"`
-	Status         string         `gorm:"type:varchar(50)"` // Active, Paid, Overdue
-	ExpenseIds     []uint
 }

@@ -14,7 +14,7 @@ import (
 func main() {
 
 	// Load environment variables
-	err := godotenv.Load("/Users/jonashammerseth/Desktop/småProsjekt/budget-tracker/.env")
+	err := godotenv.Load("/Users/jonashammerseth/Desktop/sideprosjekter/budget-tracker/.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
@@ -25,7 +25,7 @@ func main() {
 
 	// Setup CORS middleware
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:5173", "http://localhost:8100"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -45,7 +45,7 @@ func main() {
 		api.GET("/users", handler.GetUsers)
 
 		api.GET("/users/:id", handler.GetUser)
-		api.PUT("/users/:id", handler.UpdateUser)
+		api.PUT("/users/", handler.UpdateUser)
 		api.DELETE("/users/:id", handler.DeleteUser)
 
 		api.POST("/users/expense", handler.AddExpense)

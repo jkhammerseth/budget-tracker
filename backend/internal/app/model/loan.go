@@ -7,8 +7,8 @@ import (
 )
 
 type Loan struct {
-	ID             uint `gorm:"primaryKey"`   // Use uint for auto-incrementing IDs
-	UserID         uint `gorm:"type:integer"` // Ensure this matches the type of User.ID if it references it
+	ID             uint `gorm:"primaryKey"`                                    // Use uint for auto-incrementing IDs
+	UserID         uint `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // Ensure this matches the type of User.ID if it references it
 	Amount         float64
 	Interest       float64
 	StartDate      time.Time `gorm:"type:date"` // Use time.Time for dates
@@ -16,9 +16,8 @@ type Loan struct {
 	MonthlyPayment float64
 	DownPayment    float64
 	Comment        string `gorm:"type:varchar(255)"` // Define string length if necessary
-	Remaining      float64
-	Type           string `gorm:"type:varchar(50)"` // Mortgage, Car, Student, Personal
-	Status         string `gorm:"type:varchar(50)"` // Active, Paid, Overdue
+	Type           string `gorm:"type:varchar(50)"`  // Mortgage, Car, Student, Personal
+	Status         string `gorm:"type:varchar(50)"`  // Active, Paid, Overdue
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      gorm.DeletedAt `gorm:"index"`

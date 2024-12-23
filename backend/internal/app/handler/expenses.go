@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"io"
 	"net/http"
-	"time"
+	//"time"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jkhammerseth/budget-tracker/backend/internal/app/model"
@@ -37,11 +39,17 @@ func AddExpense(c *gin.Context) {
 
 func AddExpenses(c *gin.Context) {
 	userID, _ := c.Get("userID")
+	fmt.Printf("Retrieved userID from context: %v (type: %T)\n", userID, userID)
+
 	userIDUint, ok := userID.(uint)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
 		return
 	}
+
+	// Debug: Log the raw JSON payload
+	body, _ := io.ReadAll(c.Request.Body)
+	fmt.Printf("Received JSON payload: %s\n", string(body))
 
 	var expenses []model.Expense
 	if err := c.ShouldBindJSON(&expenses); err != nil {
@@ -49,19 +57,45 @@ func AddExpenses(c *gin.Context) {
 		return
 	}
 
+	var validExpenses []model.Expense
 	for i := range expenses {
 		expenses[i].UserID = userIDUint
-	}
 
-	db := db.GetDB()
-	for _, expense := range expenses {
-		if result := db.Create(&expense); result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
-			return
+		// Basic validation
+		if expenses[i].Name != "" && expenses[i].Amount > 0 && !expenses[i].StartDate.IsZero() {
+			// Ensure EndDate is set or valid
+			if expenses[i].EndDate == nil {
+				expenses[i].EndDate = expenses[i].StartDate
+			} else if expenses[i].StartDate.After(*expenses[i].EndDate) {
+				fmt.Printf("Skipping expense with invalid date range: %+v\n", expenses[i])
+				continue
+			}
+
+			validExpenses = append(validExpenses, expenses[i])
+		} else {
+			fmt.Printf("Skipping invalid expense: %+v\n", expenses[i])
 		}
 	}
 
-	c.IndentedJSON(http.StatusCreated, expenses)
+	if len(validExpenses) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid expenses to add"})
+		return
+	}
+
+	db := db.GetDB()
+	result := db.Create(&validExpenses)
+
+	if result.Error != nil {
+		fmt.Printf("Error during batch insert: %v\n", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	if result.RowsAffected != int64(len(validExpenses)) {
+		fmt.Printf("Expected %d rows to be inserted, but only %d were added\n", len(validExpenses), result.RowsAffected)
+	}
+
+	c.IndentedJSON(http.StatusCreated, validExpenses)
 }
 
 func GetExpenses(c *gin.Context) {
@@ -118,15 +152,15 @@ func UpdateExpense(c *gin.Context) {
 	if updatedExpense.Category != nil {
 		expense.Category = *updatedExpense.Category
 	}
-	if updatedExpense.Date != nil {
-		// Parse the date string to time.Time
-		parsedDate, err := time.Parse("2006-01-02T00:00:00Z", *updatedExpense.Date)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
-			return
-		}
-		expense.Date = parsedDate
-	}
+	//if updatedExpense.Date != nil {
+	//	// Parse the date string to time.Time
+	//	parsedDate, err := time.Parse("2006-01-02T00:00:00Z", *updatedExpense.Date)
+	//	if err != nil {
+	//		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format"})
+	//		return
+	//	}
+	//	expense.StartDate = parsedDate
+	//}
 	if updatedExpense.Comment != nil {
 		expense.Comment = *updatedExpense.Comment
 	}

@@ -3,6 +3,7 @@ import { FetchExpenses } from "../../routes/api/fetchExpenses";
 import { filteredExpenses } from '../../stores/filteredExpenses';
 import { derived } from 'svelte/store';
 import { onMount } from 'svelte';
+import { formatAmount } from "../../utility/functions";
 
 onMount(() =>{
     FetchExpenses();
@@ -11,11 +12,6 @@ onMount(() =>{
 const totalExpenses = derived(filteredExpenses, $filteredExpenses => {
     return $filteredExpenses.reduce((total, expense) => total + expense.Amount, 0);
 });
-
-    // Function to format the amount in a more readable way
-function formatAmount(amount) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NOK' }).format(amount); // Adjust currency code as needed
-}
 </script>
 
 <div class="total-expenses-container">
@@ -32,9 +28,10 @@ function formatAmount(amount) {
         border: black 1px solid;
         color: var(--primary-button-text-color);
         background-color: var(--primary-button-color);
+        box-shadow: var(--component-box-shadow);
         padding: 20px;
         border-radius: 10px;
-        font-family: 'Roboto', sans-serif;
+        font-family: var(--font-family);
         font-size: 0.5rem;
         text-align: left;
         height: 2rem;

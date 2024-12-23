@@ -56,20 +56,8 @@
         <MonthlyIncomeGraph/>
     </div>
     <div class="info">
-    <div class="clock-container">
-        <TotalIncome />
-    </div>
-    <div class="total-income-container">
-        <TotalIncome />
-    </div>
-    <div class="total-income-container">
-        <TotalIncome />
-    </div>
 </div>
 </div>
-    <div class="calendar-container">
-        <Calendar />
-    </div> 
     <div class="budget-table-container">
         <IncomeTable />
     </div>

@@ -1,15 +1,9 @@
 <script>
-  import Calendar from "../../components/Calendar.svelte";
   import TotalBalance from "../../components/TotalBalance.svelte";
   import TransactionTable from "../../components/TransactionTable.svelte";
-
-
 </script>
 
 <div class="container">
-<div class="calendar">
-  <Calendar />
-</div>
 <div class="total-balance">
   <TotalBalance />
 </div>
@@ -27,18 +21,6 @@
     padding: 40px;
     margin: 0 auto;
     max-width: var(--max-width);
-}
-
-  .calendar, .transaction-table, .total-balance {
-      background: #FFFFFF;
-      padding: 20px;
-      background-color: transparent;
-      
-  }
-  
-  .calendar {
-      grid-column: 1 / 2;
-      grid-row: 1;
   }
   
   .transaction-table {

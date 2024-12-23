@@ -15,6 +15,32 @@
 
 </script>
 
+<div class="login-container">
+  <h2>Welcome Back!</h2>
+  
+  <input
+    class="login-input"
+    type="text"
+    bind:value={username}
+    placeholder="Username"
+  />
+  <input
+    class="login-input"
+    type="password"
+    bind:value={password}
+    placeholder="Password"
+  />
+  {#if errorMessage}
+    <div class="login-error">{errorMessage}</div>
+  {/if}
+  <button class="login-button" on:click={handleLogin}>Login</button>
+  <span class="no-account">Don't have an account?</span>
+
+  <a href="/signup" class="login-link">Create an Account!</a>
+
+</div>
+
+
 <style>
   .login-container {
     max-width: 400px;
@@ -69,36 +95,12 @@
     text-align: center;
   }
 
-  .no-account {
+  .no-account, .login-link {
     
     display: flex;
     justify-content: center;
     align-items: space-between;
-    padding: 20px;
+    
+    padding: 2px;
   }
 </style>
-
-<div class="login-container">
-  <h2>Welcome Back!</h2>
-  
-  <input
-    class="login-input"
-    type="text"
-    bind:value={username}
-    placeholder="Username"
-  />
-  <input
-    class="login-input"
-    type="password"
-    bind:value={password}
-    placeholder="Password"
-  />
-  {#if errorMessage}
-    <div class="login-error">{errorMessage}</div>
-  {/if}
-  <button class="login-button" on:click={handleLogin}>Login</button>
-  <div class="no-account">
-  <span>Don't have an account?</span>
-  <a href="/signup" class="login-link">Create an Account!</a>
-</div>
-</div>

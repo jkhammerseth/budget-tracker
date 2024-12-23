@@ -253,10 +253,12 @@
         font-size: 1.5rem;
 
     }
-
+    
+    
     .expenses-list {
         list-style-type: none;
         padding: 0;
+
     }
 
     .expense-item {
@@ -278,15 +280,16 @@
     .day-name {
         font-size: 1.5rem;
         margin-bottom: 1rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-family: var(--font-family);
     }
-
-
-
     .display-date {
         display: flex;
         flex-direction: column;
         align-items: left;
         margin-bottom: 1rem;
+        text-transform: capitalize;
         margin-top: 2rem;
     }
     .calendar-full {
@@ -361,7 +364,7 @@
     .day {
         display: flex;
         align-items: left;
-        justify-content: left;
+        justify-content: space-between;
         height: 4rem;
         padding: 10px;
         background: transparent;
@@ -369,6 +372,7 @@
         cursor: pointer;
         transition: background-color 0.1s ease;
         border: 0;
+
     }
 
     .day.in-range {
@@ -442,6 +446,37 @@
         background-color: #68a1f1;
     }
 
+    .day-content {
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .number {
+        font-size: 1rem;
+    }
+
+    .day-expense-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.5rem;
+        height: 0.7rem;
+        width: 0.7rem;
+        background-color: var(--primary-button-color);
+
+        color: white;
+        padding: 0.1rem;
+        padding-right: 0;
+        margin-left: 0.5rem;
+        border-radius: 50%;
+    }
+
+    .day-expense-number.none {
+        display: none;
+    }
+
   </style>
   
   <div class="calendar-box">
@@ -452,7 +487,17 @@
         </div>
         <div>
         {#if $expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate).length === 0}
-            <p>No expenses this date.</p>
+            <p>No expenses.</p>
+        {:else if $expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate).length === 1}
+            <p>1 expense</p>
+            <ul class="expenses-list">
+                {#each $expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate) as expense}
+                    <li class="expense-item">
+                        <span class="expense-name">{expense.Name}</span>
+                        <span class="expense-amount">{expense.Amount} kr</span>
+                    </li>
+                {/each}
+            </ul>
         {:else}
             <p>{$expenses.filter(exp => formatDate(exp.Date) === formattedSelectedDate).length} expenses</p>
             <ul class="expenses-list">
@@ -498,7 +543,7 @@
   </div>
 <div class="the-calendar">
   <div class="calendar-days">
-      <p>Sun</p><p>Mon</p><p>Tus</p><p>Wed</p><p>Thu</p><p>Fri</p><p>Sat</p>
+      <p>Sun</p><p>Mon</p><p>Tue</p><p>Wed</p><p>Thu</p><p>Fri</p><p>Sat</p>
   </div>
     <div class="calendar-container">
       {#each dates as date, index (date ? date.toDateString() : 'empty-' + index)}
@@ -507,7 +552,16 @@
                     {get(selectedStartDate) && get(selectedEndDate) && date >= get(selectedStartDate) && date <= get(selectedEndDate) ? 'in-range' : ''}
                     {date?.getMonth() !== currentMonth ? 'previous-days' : ''}" 
           on:click={() => selectDate(date)}>
-          {date ? date.getDate() : ''}
+          <div class="day-content">
+          <span class="number">{date ? date.getDate() : ''}</span>
+          
+            {#if $expenses.filter(exp => formatDate(exp.Date) === formatDate(date)).length === 0}
+            <span class="day-expense-number none">0</span>
+                {:else}
+                <span class="day-expense-number">{$expenses.filter(exp => formatDate(exp.Date) === formatDate(date)).length}</span>
+                {/if}
+            
+        </div>
       </button>
   {/each}
     </div>

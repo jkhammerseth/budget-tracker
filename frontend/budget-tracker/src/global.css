@@ -1,11 +1,12 @@
 :root {
     /* Color scheme */
-    --background-color: #f5f5f5;
     --component-bg-color: #E8EFF1;
     --component-border-color: black;
+    --component-border: 1px solid var(--component-border-color);
     --component-border-radius: 10px;
     --component-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     --component-text-color: black;
+    --sidenav-color: white;
 
     --font-family: 'Roboto', sans-serif;
 
@@ -21,6 +22,13 @@
     --info: #3498db;
     --background-color: #ecf0f1;
     --text-color: #333;
+
+    --sidenav-bg-color: #9FB6D0;
+    --sidenav-text-color: #333;
+    --sidenav-hover-bg-color: #B0C4DE;
+    --sidenav-active-bg-color: #3A87F2;
+    --sidenav-active-text-color: #FFF;
+    --icon-size: 40px;
   
     /* Font family */
     --font-primary: 'Roboto', sans-serif;
@@ -30,6 +38,8 @@
     --font-size-large: 20px;
     --font-size-small: 14px;
 
-    --max-width: 80%;
+    --max-width: 90%;
+
+    --header-height: 2.5rem;
   }
   

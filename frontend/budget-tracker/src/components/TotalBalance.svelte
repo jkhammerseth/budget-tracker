@@ -1,10 +1,11 @@
 <script>
-  import { onMount } from 'svelte';
-    import { filteredExpenses } from '../stores/filteredExpenses';
-    import { filteredIncome } from '../stores/filteredIncome'; // Ensure correct import path
-    import { derived } from 'svelte/store';
-  import { fetchIncome } from '../routes/api/fetchIncome';
-  import { FetchExpenses } from '../routes/api/fetchExpenses';
+import { onMount } from 'svelte';
+import { filteredExpenses } from '../stores/filteredExpenses';
+import { filteredIncome } from '../stores/filteredIncome';
+import { derived } from 'svelte/store';
+import { fetchIncome } from '../routes/api/fetchIncome';
+import { FetchExpenses } from '../routes/api/fetchExpenses';
+import { formatAmount } from '../utility/functions'
 
     onMount(() =>{
         fetchIncome();
@@ -25,11 +26,6 @@
     const totalExpenses = derived(filteredExpenses, $filteredExpenses => {
         return $filteredExpenses.reduce((total, expense) => total + expense.Amount, 0);
     });
-
-    // Function to format the amount in a more readable way
-    function formatAmount(amount) {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NOK' }).format(amount); // Adjust currency code as needed
-    }
 </script>
 
 
@@ -57,14 +53,13 @@
         display: flex;
         flex-direction: row;
         max-width: full-width;
-        font-family: 'Roboto', sans-serif;
+        font-family: var(--font-family);
         gap: 20px;
         border-radius: 20px;
         margin: 40px auto;
         border-radius: 20px;
         padding: 20px;
         max-width: 40rem;
-        font-family: 'Roboto', sans-serif;
         background-color: var(--component-bg-color);
         max-height: fit-content;
         border: 1px solid var(--component-border-color);

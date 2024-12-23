@@ -1,18 +1,40 @@
 <script>
   import { filteredExpenses } from '../stores/filteredExpenses';
   import { onMount } from 'svelte';
-  import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte';
   import { FetchExpenses } from '../routes/api/fetchExpenses';
   import { derived } from 'svelte/store';
   import ExpenseStatusButton from './ui/ExpenseStatusButton.svelte';
-  import ExpenseActionMenu from './ExpenseActionMenu.svelte';
+  import ExpenseModal from './modals/ExpenseModal.svelte';
+  import { fromISOString, formatExpenseAmount } from '../utility/functions'
+  import { activeModal } from '../stores/activeModal';
 
-  function toggleMenu(expense) {
-    menuStates[expense] = !menuStates[expense];
-    menuStates = { ...menuStates };
+  let selectedExpense = null;
+
+  const categoryIcons = {
+    Food: '🍔',
+    Transportation: '🚗',
+    Housing: '🏠',
+    Utilities: '💡',
+    Insurance: '📋',
+    Healthcare: '💊',
+    Entertainment: '🎉',
+    Clothing: '👗',
+    Miscellaneous: '📦',
+  };
+
+  function getCategoryIcon(category) {
+    return categoryIcons[category] || '📁'; // Default icon if category not found
   }
 
-  let menuStates = {};
+  function openExpenseModal(expense) {
+    selectedExpense = expense;
+    activeModal.set('expense'); // Make sure 'expense' is set to trigger the modal
+  }
+
+  function closeExpenseModal() {
+    selectedExpense = null;
+    activeModal.set(null); // Close modal by resetting activeModal state
+  }
 
   let nameFilter = '';
   let sortKey = 'date';
@@ -34,230 +56,157 @@
 
   onMount(FetchExpenses);
 
-  function formatAmount(amount) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NOK' }).format(amount);
-  }
+  function daysUntil(dateString) {
+    const today = new Date();
+    const targetDate = new Date(dateString);
 
-  function resetFilter() {
-      nameFilter = '';
-      sortKey = 'date';
-      sortOrder = 'asc';
-      FetchExpenses();
-    }
-
-  function fromISOString(isoString) {
-    const date = new Date(isoString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
-    const year = date.getFullYear().toString().substr(-2); 
-    return `${day}.${month}.${year}`;
+    const diffTime = targetDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+    return diffDays >= 0 ? `${diffDays}d left` : `${Math.abs(diffDays)}d ago`;
   }
 </script>
 
 <div class="container">
-  <div class="filter-sort-container">
-    <input class="search-field" type="text" placeholder="Search by name..." bind:value="{nameFilter}">
-    
-    <select class="select-filter" bind:value="{sortKey}">
-      <option value="amount">Sort by Amount</option>
-      <option value="category">Sort by Category</option>
-      <option value="date">Sort by Date</option>
-    </select>
-  
-    <select class="filter-order" bind:value="{sortOrder}">
-      <option value="asc">Ascending</option>
-      <option value="desc">Descending</option>
-    </select>
-
-    <button class="apply-filter-button" on:click={FetchExpenses} title="Apply">
-      <span>Apply</span>
-    </button>
-    <button class="icon-button" on:click={resetFilter} title="Remove filter">
-      <span class="icon"><FaRegTrashAlt/></span>
-  </div>
-  {#if $filteredExpenses.length > 0}
-    <table>
-      <thead>
-        <tr>
-          <th>...</th>
-          <th>Name</th>
-          <th>Amount</th>
-          <th>Category</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each $filteredSortedExpenses as expense}
+  {#if $filteredExpenses === undefined}
+    <p>Loading expenses...</p>
+  {:else if $filteredExpenses.length === 0}
+    <p>No expenses found.</p>
+  {:else}
+    <div class="table-wrapper">
+      <table>
+        <thead>
           <tr>
-            <td>
-              <input class="checkbox" type="checkbox" />
-            </td>
-            <td>
-              {expense.Name}
-            </td>
-            <td>{formatAmount(expense.Amount)}</td>
-            <td>{expense.Category}</td>
-            <td>
-              <ExpenseStatusButton {expense}/>
-            </td>
-            <td>{fromISOString(expense.Date)}</td>
-            <td>
-              <button class="dots" on:click={() => toggleMenu(expense)}>
-                <span class="icon">...</span>
-              </button>
-              {#if menuStates[expense]}
-                <ExpenseActionMenu expense={expense} />
-              {/if}
-            </td>
+            <th>Category</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="text-right">Date</th>
+            <th class="text-right">Amount</th>
           </tr>
-        {/each}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {#each $filteredSortedExpenses as expense}
+            <tr on:click={() => openExpenseModal(expense)}>
+              <td >
+                <span class="category-icon">{getCategoryIcon(expense.Category)}</span>
+                <span>{expense.Category}</span>
+              </td>
+              <td class="name">{expense.Name}</td>
+              <td><ExpenseStatusButton {expense} /></td>
+              <td class="text-right">
+                <div class="date-in-table">
+                  <span class="date-logo">📅</span>
+                  <div class="date-info">
+                    <span class="date">{fromISOString(expense.PaymentDate)}</span>
+                    <span class="days-until">{daysUntil(expense.PaymentDate)}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="text-right-number">{formatExpenseAmount(expense.Amount)}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
   {/if}
 
-  {#if $filteredExpenses.length === 0}
-    <p>No expenses found.</p>
+  {#if $activeModal === 'expense' && selectedExpense}
+    <ExpenseModal 
+      expense={selectedExpense} 
+    />
   {/if}
 </div>
 
-  
-  <style>
-    .container {
-      max-width: 100%;
-      font-family: var(--font-family);
-      border-radius: var(--component-border-radius);
+<style>
+  .container {
+    width: 100%;
+  }
 
-    }
+  .table-wrapper {
+    overflow-x: auto;
+  }
+  .name,
+  .date {
+    font-weight: 450;
+  }
 
-    .filter-sort-container {
-      display: flex;
-      align-items: center;
-      width: 41.5rem;
-      gap: 10px;
-      padding: 10px;
-      background-color: var(--component-bg-color);
-      border: var(--component-border-color);
-      border-style: solid;
-      border-width: 1px;
-      border-radius: var(--component-border-radius);
-      border-bottom: none;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+  }
 
-    }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
 
-    .search-field, .select-filter, .filter-order, .apply-filter-button, .icon-button {
-      border: 1px solid #ccc; 
-      padding: 8px 12px;
-      border-radius: 4px;
-      outline: none;
-    }
+  th {
+    background-color: #F9FAFB; 
+    height: 2.5rem;
+    border-bottom: 1px solid #E5E7EB;
+  }
 
-    .search-field:focus, .select-filter:focus, .filter-order:focus {
-      border-color: #3A87F2;
-    }
+  td.text-right-number,
+  th.text-right, td.text-right {
+    text-align: right;
+  }
 
-    .apply-filter-button, .icon-button {
-      cursor: pointer; 
-      background-color: var(--primary-button-color);
-      color: var(--primary-button-text-color);
-      border: none; 
-      transition: background-color 0.2s;
-    }
+  tr:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
 
-    .apply-filter-button:hover {
-      background-color: var(--primary-button-hover-color);
-    }
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+  .date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    align-items: right;
+  }
 
+  .date-in-table {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 
+  .category-icon {
+    font-size: 2rem;
+    margin-right: 12px;
+  }
 
-    input[type="text"],
-    select {
-      width: calc(100% - 20px);
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
+  .days-until {
+    font-size: 0.85rem;
+    color: #777;
+  }
 
-    .checkbox {
-      width: 16px;
-      height: 16px;
-    }
-  
+  .date-logo {
+    margin-right: 10px;
+  }
+
+  /* Media Query for smaller screens */
+  @media (max-width: 768px) {
     table {
-      width: 42.86rem;
-      border-collapse: separate;
-      border-spacing: 0;
-      background-color: var(--component-bg-color);
-      box-shadow: var(--component-box-shadow);
-      font-family: var(--font-family);
-      overflow: hidden;
-      border-style: solid;
-      border-color: var(--component-border-color);
-      border-width: 1px;
+      display: block;
+      overflow-x: auto;
     }
-  
+
     th, td {
-      padding: 10px 12px; 
-      text-align: left;
-      border-bottom: solid 1px #ddd;
-    }
-  
-    th {
-      background-color: var(--primary-color);
-      color: white;
-      font-weight: normal;
-    }
-  
-    tr:hover {
-      background-color: #f5f5f5; 
-    }
-  
-    tr:last-child td {
-      border-bottom: none;
+      padding: 8px 12px;
+      font-size: 12px; /* Reduce font size on smaller screens */
     }
 
-    .icon-button {
-      background: none;
-      border: none;
-      padding: 0;
-      cursor: pointer;
-      outline: inherit;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      height: 46px;
-      width: 46px;
-  }
+    .category-icon {
+      font-size: 1.5rem; /* Reduce icon size on smaller screens */
+    }
 
-  .dots {
-      background: none;
-      border: none;
-      padding: 2px;
-      cursor: pointer;
-      outline: inherit;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-
+    .days-until {
+      font-size: 0.75rem; /* Smaller text for 'days left' on mobile */
+    }
   }
-
-  .icon {
-      font-size: 16px;
-      line-height: 1.5;
-      color: black; 
-  }
-
-  .icon:hover {
-      color: #3A87F2;
-  }
-
-  .icon:active {
-      transform: scale(0.9);
-  }
-  </style>
-  
+</style>

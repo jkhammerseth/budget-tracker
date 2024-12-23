@@ -1,12 +1,9 @@
 <script>
   import { filteredIncome } from '../stores/filteredIncome';
   import { onMount } from 'svelte';
-  import UpdateIncomeButton from './ui/UpdateIncomeButton.svelte';
-  import DeleteIncomeButton from './ui/DeleteIncomeButton.svelte';
   import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
   import { fetchIncome } from '../routes/api/fetchIncome';
   import { derived } from 'svelte/store';
-  import AddCommentButton from './ui/AddCommentButton.svelte';
   import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
 
 

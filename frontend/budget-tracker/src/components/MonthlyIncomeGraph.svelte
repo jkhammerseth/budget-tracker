@@ -31,7 +31,7 @@
               label: 'Monthly Income',
               data: dataByMonth,
               backgroundColor: 'rgba(54, 162, 235, 0.8)',
-              borderColor: 'rgba(54, 162, 235, 1)',
+              borderColor: 'black',
               borderWidth: 1
             }]
           },

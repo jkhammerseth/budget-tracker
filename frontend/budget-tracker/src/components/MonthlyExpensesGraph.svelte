@@ -12,7 +12,7 @@
       // Sum expenses by month
       const dataByMonth = new Array(12).fill(0);
       $filteredExpenses.forEach(expense => {
-          const month = new Date(expense.Date).getMonth();
+          const month = new Date(expense.PaymentDate).getMonth();
           dataByMonth[month] += expense.Amount;
       });
 
@@ -24,7 +24,7 @@
                   label: 'Monthly Expenses',
                   data: dataByMonth,
                   backgroundColor: 'rgba(219, 38, 0, 0.8)',
-                  borderColor: 'rgba(219, 162, 235, 1)',
+                  borderColor: 'black',
                   borderWidth: 1
               }]
           },
@@ -76,16 +76,18 @@
         border-color: var(--component-border-color);
         border-width: 1px;
         border-radius: var(--component-border-radius);
+        box-shadow: var(--component-box-shadow);
         font-family: var(--font-family);
         margin-top: 40px;
         height: auto;
     }
 
   .chart-container {
-        width: 100%;
-        max-width: 45rem; /* or any other max-width */
         margin: auto;
-        height: 20rem;
+        width: 70rem;
+        height: 23rem;
+        max-width: 100%;
+        max-height: 100%;
         }
 
 </style>

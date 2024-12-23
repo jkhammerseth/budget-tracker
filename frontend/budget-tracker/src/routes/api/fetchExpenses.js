@@ -1,7 +1,6 @@
 import { expenses } from '../../stores/expenses.js';
 
 export async function FetchExpenses() {
-    console.log("Populating budget table");
     try {
       const exp_response = await fetch('http://localhost:8080/api/users/expenses', {
         credentials: 'include'

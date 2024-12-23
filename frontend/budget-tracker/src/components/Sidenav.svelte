@@ -1,158 +1,213 @@
-<style>
-    .sidenav {
-      height: 100%;
-      width: 300px; 
-      position: fixed;
-      z-index: 1;
-      top: 0;
-      left: 0;
-      background: #9FB6D0;
-      overflow-x: hidden;
-      padding-top: 20px;
-    }
-  
-    .sidenav h1 {
-      color: var(--text-color);
-      text-align: center;
-      margin-bottom: 30px;
-      font-family: var(--font-family);
-      font-size: 34px; 
-      font-weight: 300; 
-    }
-  
-    .sidenav a {
-      padding: 10px 20px; 
-      text-decoration: none;
-      font-size: 20px;
-      color: var(--text-color);
-      display: flex;
-      align-items: center;
-      gap: 10px; 
-      transition: 0.3s;
-      border-left: 3px solid transparent;
-    }
-
-    .user-button-container {
-      position: absolute;
-      bottom: 20px;
-      width: 100%;
-      padding-bottom: 10px;
-      font-family: var(--font-family);
-    }
-
-    .icon {
-      width: 40px;
-      height: 40px;
-      margin-top: 3px;
-    }
-
-    .full-name {
-      display: flex;
-      font-size: 1.1rem;
-      margin: 15px;
-      margin-left: 15px;
-    }
-
-    .user-button {
-      display: flex;
-      flex-direction: row;
-      width: 90%;
-      margin: 10px;
-      margin-bottom: 0;
- 
-      background-color: transparent; 
-      color: var(--text-color);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    .user-button.active {
-      background-color: var(--primary-button-color); 
-      
-    }
-  
-    .sidenav a:hover {
-      background-color: var(--primary-button-hover-color); 
-      color: var(--primary-button-text-color);
-    }
-  
-    .sidenav .active {
-      background-color: var(--primary-button-color); 
-      color: var(--primary-button-text-color);
-    }
-  </style>
-
 <script>
-    import { page } from '$app/stores';
-    import { derived } from 'svelte/store';
-    import UserMenu from './UserMenu.svelte';
-    import { onMount } from 'svelte';
-    import FaRegUserCircle from 'svelte-icons/fa/FaRegUserCircle.svelte'
-    import { goto } from '$app/navigation';
-    import FaUserAltSlash from 'svelte-icons/fa/FaUserAltSlash.svelte'
-    import { checkAuthStatus } from '../routes/api/auth.js';
-    import { user } from '../stores/user.js';
+  import { onMount } from 'svelte';
+  import FaRegUserCircle from 'svelte-icons/fa/FaRegUserCircle.svelte';
+  import { goto } from '$app/navigation';
+  import FaUserAltSlash from 'svelte-icons/fa/FaUserAltSlash.svelte';
+  import { checkAuthStatus } from '../routes/api/auth.js';
+  import { user } from '../stores/user.js';
   import Calendar from './Calendar.svelte';
+  import FaCog from 'svelte-icons/fa/FaCog.svelte';
+  import SettingsModal from "./modals/SettingsModal.svelte";
+  import ExpensesByCategoryBox from './ExpensesByCategoryBox.svelte';
+  import FaBars from 'svelte-icons/fa/FaBars.svelte';
+  import FaTimes from 'svelte-icons/fa/FaTimes.svelte';
 
-
-    let showMenu = false;
-  
-    // Derived store to get the current path
-    const path = derived(page, $page => $page.url.pathname);
-  
-
-
-
+  let showModal = false;
+  let isCollapsed = false; // To toggle the sidenav state
 
   onMount(() => {
     checkAuthStatus();
   });
 
-  function goToLogin() {
-    goto('/login');
+  function handleSettingsClick() {
+    showModal = true;
   }
-  </script>
-  
-  <div class="sidenav">
-    <h1>Budget Tracker</h1>
-    <a href="/" class:active={$path === '/'}>
-      Home
-    </a>
-    <a href="/dashboard" class:active={$path === '/dashboard'}>
-      Dashboard
-    </a>
-    <a href="/expenses" class:active={$path === '/expenses'}>
-      Expenses
-    </a>
-    <a href="/income" class:active={$path === '/income'}>
-      Income
-    </a>
-    <a href="/categories" class:active={$path === '/categories'}>
-      Categories
-    </a>
-    <a href="/loans" class:active={$path === '/loans'}>
-      Loans
-    </a>
-    <a href="/assets" class:active={$path === '/assets'}>
-      Assets
-    </a>
 
-  <div class="user-button-container">
+  function toggleSidenav() {
+    isCollapsed = !isCollapsed;
+  }
+</script>
+
+<div class="sidenav {isCollapsed ? 'collapsed' : ''}">
+  <!-- Collapse/Expand Button -->
+  <button class="collapse-button" on:click={toggleSidenav}>
+    {#if isCollapsed}
+      <FaBars />
+    {:else}
+      <FaTimes />
+    {/if}
+  </button>
+
+  <!-- User Menu Section -->
+  <div class="user-menu">
     {#if $user.loggedIn}
-    <button class="user-button {showMenu ? 'active' : ''}" on:click={() => showMenu = !showMenu}>
-        <span class="icon"><FaRegUserCircle/></span>
-        <span class="full-name">{$user.firstName + ' ' + $user.lastName}</span>
+      <button class="settings-button {isCollapsed ? 'collapsed' : ''}" on:click={() => handleSettingsClick()}>
+        <FaCog />
       </button>
-      {:else}
-      <button class="user-button" on:click={goToLogin}>
-        <span class="icon"><FaUserAltSlash/></span>
-        <span class="full-name">Sign In</span>
+      <button class="user-image {isCollapsed ? 'collapsed' : ''}">
+        <FaRegUserCircle />
       </button>
-      {/if}
-    
-    <UserMenu show={showMenu} />
+    {:else}
+      <button class="user-button" on:click|preventDefault={() => goto('/login')}>
+        <FaUserAltSlash />
+        <span class="full-name" class:hide={isCollapsed}>Sign In</span>
+      </button>
+    {/if}
+    <SettingsModal bind:showModal />
   </div>
-   
+
+  <!-- Categories Section -->
+  <div class="categories-section {isCollapsed ? 'collapsed' : ''}">
+    <ExpensesByCategoryBox />
   </div>
-  
+
+  <!-- Calendar Section -->
+  <div class="calendar-container {isCollapsed ? 'collapsed' : ''}">
+    <Calendar />
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary-color: #007bff;
+    --text-color: #fff;
+    --icon-size: 24px;
+    --border-radius: 8px;
+    --font-family: 'Roboto', sans-serif;
+  }
+
+  .sidenav {
+    height: 100%;
+    width: 22rem;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background: var(--sidenav-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    font-family: var(--font-family);
+    transition: width 0.3s ease, background 0.3s ease;
+    overflow-x: hidden;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .sidenav.collapsed {
+    width: 1%;
+    background-color: var(--background-color);
+  }
+
+  .user-image.collapsed,
+  .settings-button.collapsed,
+  .categories-section.collapsed,
+  .calendar-container.collapsed {
+    display: none;
+  }
+
+  .collapse-button {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .collapse-button:hover {
+    color: var(--primary-color);
+  }
+
+  .user-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .user-button,
+  .user-image {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    border-radius: 50%;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background 0.3s ease;
+  }
+
+  .user-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: opacity 0.3s ease;
+  }
+
+  .user-button .hide {
+    display: none;
+  }
+
+  .settings-button {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .settings-button:hover {
+    transform: scale(1.1);
+  }
+
+  .categories-section {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    transition: opacity 0.3s ease;
+  }
+
+  .categories-section.collapsed {
+    opacity: 0.5;
+  }
+
+  .calendar-container {
+    margin-bottom: 50px;
+  }
+
+  .calendar-container :global(.calendar) {
+    width: 100%;
+  }
+
+  /* Scrollbar styling */
+  .categories-section::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .categories-section::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: var(--border-radius);
+  }
+
+  .categories-section::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
+</style>

@@ -1,19 +1,13 @@
 <script>
     import { onMount } from 'svelte';
-    import UpdateExpenseButton from './ui/UpdateExpenseButton.svelte';
-    import DeleteExpenseButton from './ui/DeleteExpenseButton.svelte';
     import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
     import { filteredExpenses } from '../stores/filteredExpenses';
     import { filteredIncome } from '../stores/filteredIncome.js';
     import { fetchIncome } from '../routes/api/fetchIncome';
     import { FetchExpenses } from '../routes/api/fetchExpenses';
     import { derived } from 'svelte/store';
-    import AddCommentButton from './ui/AddCommentButton.svelte';
     import ExpenseStatusButton from './ui/ExpenseStatusButton.svelte';
     import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
-    import UpdateIncomeButton from './ui/UpdateIncomeButton.svelte';
-    import DeleteIncomeButton from './ui/DeleteIncomeButton.svelte';
-
 
     let nameFilter = '';
     let sortKey = 'date';
@@ -142,18 +136,8 @@
             <IncomeStatusButton income={item}/>
           {/if}
         </td>
-        <td>{fromISOString(item.Date)}</td>
-        <td>
-          <AddCommentButton entry={item}/>
-          {#if item.Type === 'Expense'}
-            <UpdateExpenseButton expense={item}/>
-            <DeleteExpenseButton expense={item}/>
-          {:else if item.Type === 'Income'}
-            <UpdateIncomeButton income={item}/>
-            <DeleteIncomeButton income={item}/>
-          {/if}
-            
-        </td>
+        <td>{fromISOString(item.PaymentDate)}</td>
+      
       </tr>
     {/each}
   </tbody>

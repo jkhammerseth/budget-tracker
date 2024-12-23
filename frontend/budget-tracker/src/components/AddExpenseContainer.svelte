@@ -24,7 +24,7 @@
         Amount: parseInt(amount, 10),
         Category: category,
         Frequency: frequency,
-        Date: date.toISOString()
+        PaymentDate: date.toISOString()
     };
 }
 
@@ -185,7 +185,9 @@
 <div class="form-container">
   <h2>Add Expense</h2>
   <div class="form-control">
+    <label for="name" class="sr-only">Name</label>
     <input id="name" placeholder="Name" type="text" bind:value={name} />
+    <label for="amount" class="sr-only">Amount</label>
     <input id="amount" placeholder="Amount" type="number" bind:value={amount} />
     <select id="category" bind:value={category}>
         <option value="">Select category</option>
@@ -201,6 +203,7 @@
       <option value="Monthly">Monthly</option>
       <option value="Annually">Annually</option>
     </select>
+    <label for="date" class="sr-only">Date</label>
     <input id="date" type="date" bind:value={startDate} />
 
   {#if !(frequency === 'One-time' || frequency === '')}
@@ -297,8 +300,18 @@
         border-color: var(--component-border-color);
         border-style: solid;
         border-width: 1px;
+    }
 
-
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .view-tab:first-of-type {

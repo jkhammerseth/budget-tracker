@@ -11,11 +11,11 @@
   
     async function handleCreateUser() {
       const userData = {
-        firstname,
-        lastname,
-        email,
-        username,
-        password,
+        "FirstName" : firstname,
+        "LastName" : lastname,
+        "Email" : email,
+        "Username": username,
+        "Password" : password,
       };
       
       try {
@@ -101,7 +101,8 @@
       <input type="email" bind:value={email} placeholder="Email" />
       <input type="text" bind:value={username} placeholder="Username" />
       <input type="password" bind:value={password} placeholder="Password" />
-      <input type="password" bind:value={retypedPassword} placeholder="Retype Password" />
+      
+      
       <button type="submit" class="signup-button">Sign Up</button>
     </form>
     {#if errorMessage}

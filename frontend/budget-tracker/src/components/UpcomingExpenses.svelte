@@ -11,10 +11,9 @@
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-  // Use derived store to automatically update upcomingExpenses based on expenses store
   const upcomingExpenses = derived(expenses, $expenses => {
     return $expenses.filter(expense => {
-      const expenseDate = new Date(expense.Date); // Assuming the property is 'Date'
+      const expenseDate = new Date(expense.PaymentDate); 
       return expenseDate >= today && 
              expense.Paid !== true &&
              expenseDate >= firstDayOfMonth && 
@@ -24,77 +23,105 @@
 
   // Calculate total upcoming expenses
   const totalUpcomingExpenses = derived(upcomingExpenses, $upcomingExpenses => {
-    return $upcomingExpenses.reduce((acc, expense) => acc + Number(expense.Amount), 0); // Assuming the property is 'Amount'
+    return $upcomingExpenses.reduce((acc, expense) => acc + Number(expense.Amount), 0); 
   });
 </script>
 
 <style>
-  .container {
-    width: full-width;
-    padding: 20px;
-    background-color: #E8EFF1;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    font-family: 'Roboto', sans-serif;
-    border: 1px solid black;
-  }
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: var(--component-bg-color);
+  box-shadow: var(--component-box-shadow);
+  border-radius: var(--component-border-radius);
+  border: var(--component-border);
+  font-family: var(--font-family);
+}
 
-  .greeting {
-    font-size: 1.2em;
-    color: #333;
-    margin-bottom: 30px;
-    
-  }
+.greeting {
+  font-size: 1.4em;
+  color: var(--text-color);
+  margin-bottom: 20px;
+}
 
-  h3 {
-    color: #333;
-    margin-top: 20px;
-    margin-bottom: 10px;
-  }
+.overview {
+  font-size: 1em;
+  color: var(--text-color-light);
+  margin-bottom: 40px;
+}
 
-  .overview {
-    font-size: 0.95em;
-    color: #666;
-    margin-bottom: 80px;
+h3 {
+  color: var(--text-color);
+  margin: 20px 0 10px;
+}
 
-  }
+p {
+  font-size: 1.1em;
+  color: var(--text-color);
+  font-weight: bold;
+  margin-bottom: 20px;
+}
 
-  p {
-    font-size: 1em;
-    color: #333;
-    font-weight: bold;
-  }
+ul {
+  margin-top: 20px;
+}
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin-top: 10px;
-  }
+li {
+  background-color: white;
+  margin-bottom: 10px;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: 4px solid var(--primary-color);
+  transition: transform 0.2s ease-in-out;
+}
 
-  li {
-    background-color: white;
-    margin-bottom: 10px;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+li:hover {
+  transform: translateY(-2px);
+}
 
-  li strong {
-    color: #333;
-    font-weight: 500;
-  }
+li strong {
+  color: var(--text-color);
+  font-size: 1.1em;
+}
 
-  .amount {
-    color: #e74c3c;
-    font-weight: bold;
-  }
+.amount {
+  color: var(--error-color);
+  font-weight: bold;
+}
 
-  .date {
-    color: #7f8c8d;
-  }
+.date {
+  color: var(--text-color-light);
+}
+
+li:last-child {
+  margin-bottom: 0;
+}
+
+/* Scrollable list styles */
+ul {
+  max-height: 300px; /* Adjust based on your preference */
+  overflow-y: auto;
+}
+
+/* Scrollbar styles */
+ul::-webkit-scrollbar {
+  width: 6px;
+}
+
+ul::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 10px;
+}
+
+ul::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
 </style>
 
 <div class="container">
@@ -115,7 +142,7 @@
           <strong>{expense.Name}</strong>
           <div>
             <span class="amount">{expense.Amount} kr</span>
-            <span class="date"> - Due on {new Date(expense.Date).toLocaleDateString()}</span>
+            <span class="date"> - Due on {new Date(expense.PaymentDate).toLocaleDateString()}</span>
           </div>
         </li>
       {/each}

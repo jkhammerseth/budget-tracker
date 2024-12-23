@@ -7,8 +7,7 @@ export async function createUser(userformdata) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: userformdata,
-      credentials: 'include'
+      body: JSON.stringify(userformdata)
     });
     if (!response.ok) {
       const errorData = await response.json();

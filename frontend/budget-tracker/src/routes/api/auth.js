@@ -50,24 +50,22 @@ export function logout() {
   }
 }
 
-
 export async function checkAuthStatus() {
   try {
     const response = await fetch('http://localhost:8080/api/auth/status', {
-      credentials: 'include', // Necessary for cookies to be sent with the request
+      credentials: 'include', 
     });
     if (response.ok) {
       const data = await response.json();
       user.set({ 
         loggedIn: data.isLoggedIn, 
         userId: data.user.id, 
-        username: data.user.username, // Adjusted assuming username is within data.user
+        username: data.user.username, 
         firstName: data.user.firstName, 
         lastName: data.user.lastName,
         email: data.user.email
       });
     } else {
-      // Handle non-OK responses, e.g., by clearing the user store
       user.set({
         loggedIn: false,
         userId: null,
@@ -76,9 +74,9 @@ export async function checkAuthStatus() {
         lastName: null,
         email: null,
       });
+
     }
   } catch (error) {
     console.error('Failed to check authentication status:', error);
-    // Consider how to handle errors, possibly resetting the user store or showing a message
   }
 }

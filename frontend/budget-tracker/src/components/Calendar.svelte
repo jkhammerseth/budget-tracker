@@ -86,6 +86,9 @@
   
     function selectDate(date) {
     const currentMode = get(selectionMode);
+    if (currentMode === 'day') {
+      selectedDay = date;
+    }
     if (currentMode === 'range') {
         let start = get(selectedStartDate);
         let end = get(selectedEndDate);
@@ -207,19 +210,71 @@
 
   </script>
   
+  <div class="calendar-box">
+    <div class="calendar-controls">
+      <div class="calendar-months">
+        <button class="icon-button" on:click={previousMonth}>
+          <span class="sr-only">Left Arrow</span>
+            <span class="prev-month-arrow"><FaAngleLeft/></span>
+        </button>
+        <button class="month-button {$selectionMode === 'month' ? 'active' : ''}
+        " on:click={() => toggleSelectionMode('month')}>{
+            (new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })
+              .replace(/^\w/, (c) => c.toUpperCase()))
+          }</button>
+      
+        <button class="icon-button" on:click={nextMonth}>
+          <span class="sr-only">Right Arrow</span>
+          <span class="next-month-arrow">
+              <FaAngleRight/>
+          </span>
+        </button>
+      </div>
+    <div class="calendar-years">
+      <button class="icon-button" on:click={previousYear}>
+          <span class="sr-only">Left Arrow</span>
+          <span class="prev-year-arrow"><FaAngleLeft/></span>
+      </button>
+      <button class="year-button {$selectionMode === 'year' ? 'active' : ''}
+      " on:click={() => toggleSelectionMode('year')}>{currentYear}</button>
+      <button class="icon-button" on:click={nextYear}>
+          <span class="sr-only">Right Arrow</span>
+          <span class="next-year-arrow"><FaAngleRight/></span>
+      </button>
+    </div>
+  </div>
+<div class="the-calendar">
+  <div class="calendar-days">
+      <p>Sun</p><p>Mon</p><p>Tus</p><p>Wed</p><p>Thu</p><p>Fri</p><p>Sat</p>
+  </div>
+    <div class="calendar-container">
+      {#each dates as date, index (date ? date.toDateString() : 'empty-' + index)}
+      <button 
+          class="day {date?.toDateString() === selectedDate.toDateString() ? 'selected' : ''}
+                    {get(selectedStartDate) && get(selectedEndDate) && date >= get(selectedStartDate) && date <= get(selectedEndDate) ? 'in-range' : ''}
+                    {date?.getMonth() !== currentMonth ? 'previous-days' : ''}" 
+          on:click={() => selectDate(date)}>
+          {date ? date.getDate() : ''}
+      </button>
+  {/each}
+    </div>
+  </div>
+    <div class="dates-below">
+
+    <button class="range-button {$selectionMode === 'range' ? 'active' : ''}" on:click={() => toggleSelectionMode('range')}>Range</button>
+    <button class="clear-button" on:click={() => clearSelection()}>Clear</button>
+    </div>  
+  </div>
+  
+ 
   <style>
     .calendar-box {
       width: 100%;
-      max-width: 17rem;
+      max-width: 20rem;
       margin-top: 40px;
       padding: 20px;
 
-      background-color: var(--component-bg-color);
-      border-style: solid;
-      border-color: var(--component-border-color);
-      border-width: 1px;
-      border-radius: var(--component-border-radius);
-      box-shadow: var(--component-box-shadow);
+      background-color: var(--sidenav-color);
       font-family: var(--font-family);
     }
 
@@ -228,7 +283,7 @@
       grid-template-columns: repeat(7, 1fr);
       grid-gap: 4px;
       padding-top: 5px;
-      background-color: var(--component-bg-color);
+      background-color: var(--sidenav-color);
 
 
       
@@ -259,20 +314,21 @@
     .month-button, .year-button {
         background-color: transparent;
         border: none;
-        color: white;
+        color: black;
         cursor: pointer; 
         font-size: 1rem; 
         transition: transform 0.1s ease; 
         }
 
     .month-button:hover, .year-button:hover {
-        transform: scale(1.1);
         transform: bold;
     }
 
     .month-button.active, .year-button.active {
         background-color: var(--primary-button-color);
         color: var(--primary-button-text-color);
+        padding: 5px;
+        border-radius: 10px;
     }
 
     .previous-days {
@@ -299,6 +355,10 @@
     .day:hover {
         background-color: #68a1f1;
     }
+
+    .day.today {
+      border: var(--component-border)
+    }
     
     .selected {
         background-color: #3A87F2;
@@ -320,7 +380,7 @@
     .prev-month-arrow, .next-month-arrow, .prev-year-arrow, .next-year-arrow {
         width: 20px;
         height: 20px;
-        color: white;
+        color: black;
     }
 
     .prev-month-arrow:hover, .next-month-arrow:hover, .prev-year-arrow:hover, .next-year-arrow:hover {
@@ -341,8 +401,6 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 10px;
-        background-color: var(--primary-button-color);
-        color: var(--primary-button-text-color);
         padding-top: 10px;
         border-radius: 10px;
     }
@@ -367,59 +425,16 @@
         color: var(--primary-button-text-color);
     }
 
-  </style>
-  
-  <div class="calendar-box">
-    <div class="calendar-controls">
-      <div class="calendar-months">
-        <button class="icon-button" on:click={previousMonth}>
-            <span class="prev-month-arrow"><FaAngleLeft/></span>
-        </button>
-        <button class="month-button {$selectionMode === 'month' ? 'active' : ''}
-        " on:click={() => toggleSelectionMode('month')}>{
-            (new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })
-              .replace(/^\w/, (c) => c.toUpperCase()))
-          }</button>
-      
-        <button class="icon-button" on:click={nextMonth}>
-          <span class="next-month-arrow">
-              <FaAngleRight/>
-          </span>
-        </button>
-      </div>
-    <div class="calendar-years">
-      <button class="icon-button" on:click={previousYear}>
-          <span class="prev-year-arrow"><FaAngleLeft/></span>
-      </button>
-      <button class="year-button {$selectionMode === 'year' ? 'active' : ''}
-      " on:click={() => toggleSelectionMode('year')}>{currentYear}</button>
-      <button class="icon-button" on:click={nextYear}>
-          <span class="next-year-arrow"><FaAngleRight/></span>
-      </button>
-    </div>
-  </div>
-<div class="the-calendar">
-  <div class="calendar-days">
-      <p>Sun</p><p>Mon</p><p>Tus</p><p>Wed</p><p>Thu</p><p>Fri</p><p>Sat</p>
-  </div>
-    <div class="calendar-container">
-      {#each dates as date, index (date ? date.toDateString() : 'empty-' + index)}
-      <button 
-          class="day {date?.toDateString() === selectedDate.toDateString() ? 'selected' : ''}
-                    {get(selectedStartDate) && get(selectedEndDate) && date >= get(selectedStartDate) && date <= get(selectedEndDate) ? 'in-range' : ''}
-                    {date?.getMonth() !== currentMonth ? 'previous-days' : ''}" 
-          on:click={() => selectDate(date)}>
-          {date ? date.getDate() : ''}
-      </button>
-  {/each}
-    </div>
-  </div>
-    <div class="dates-below">
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
 
-    <button class="range-button {$selectionMode === 'range' ? 'active' : ''}" on:click={() => toggleSelectionMode('range')}>Range</button>
-    <button class="clear-button" on:click={() => clearSelection()}>Clear</button>
-    </div>  
-  </div>
-  
- 
-  
+  </style>

@@ -8,18 +8,21 @@
   import { fromISOString, formatExpenseAmount } from '../utility/functions'
   import { activeModal } from '../stores/activeModal';
 
+  import { faUtensils, faCar, faHome, faBolt, faFileShield, faHeartbeat, faFilm, faTshirt, faBoxOpen, faCalendar } from '@fortawesome/free-solid-svg-icons';
+  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+
   let selectedExpense = null;
 
   const categoryIcons = {
-    Food: '🍔',
-    Transportation: '🚗',
-    Housing: '🏠',
-    Utilities: '💡',
-    Insurance: '📋',
-    Healthcare: '💊',
-    Entertainment: '🎉',
-    Clothing: '👗',
-    Miscellaneous: '📦',
+    Food: faUtensils,
+    Transportation: faCar,
+    Housing: faHome,
+    Utilities:  faBolt, 
+    Insurance: faFileShield, 
+    Healthcare: faHeartbeat, 
+    Entertainment: faFilm, 
+    Clothing: faTshirt, 
+    Miscellaneous: faBoxOpen,
   };
 
   function getCategoryIcon(category) {
@@ -87,14 +90,14 @@
           {#each $filteredSortedExpenses as expense}
             <tr on:click={() => openExpenseModal(expense)}>
               <td >
-                <span class="category-icon">{getCategoryIcon(expense.Category)}</span>
+                <span class="category-icon"><FontAwesomeIcon icon={getCategoryIcon(expense.Category)}/></span>
                 <span>{expense.Category}</span>
               </td>
               <td class="name">{expense.Name}</td>
               <td><ExpenseStatusButton {expense} /></td>
               <td class="text-right">
                 <div class="date-in-table">
-                  <span class="date-logo">📅</span>
+                  <span class="date-logo"><FontAwesomeIcon icon={faCalendar}/></span>
                   <div class="date-info">
                     <span class="date">{fromISOString(expense.PaymentDate)}</span>
                     <span class="days-until">{daysUntil(expense.PaymentDate)}</span>
@@ -169,14 +172,20 @@
     align-items: right;
   }
 
+  .text-right {
+    text-align: right;
+    align-items: right;
+  }
+
   .date-in-table {
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
   }
 
   .category-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin-right: 12px;
   }
 

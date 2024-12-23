@@ -11,8 +11,8 @@ export function fromISOString(isoString) {
     return `${month} ${day}`;
   }
 
- export function formatAmount(amount) {
-    return amount + ' kr';
+  export function formatAmount(amount) {
+    return amount.toLocaleString('en-US') + ' kr';
   }
 
   export function formatExpenseAmount(amount) {

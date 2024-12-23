@@ -4,19 +4,21 @@
   import { FetchExpenses } from '../routes/api/fetchExpenses';
   import { onMount } from 'svelte';
   import { formatAmount } from '../utility/functions'
+  import { faUtensils, faCar, faHome, faBolt, faFileShield, faHeartbeat, faFilm, faTshirt, faBoxOpen, faCalendar } from '@fortawesome/free-solid-svg-icons';
+  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 
   onMount(FetchExpenses);
 
   const categoryIcons = {
-    Food: '🍔',
-    Transportation: '🚗',
-    Housing: '🏠',
-    Utilities: '💡',
-    Insurance: '📋',
-    Healthcare: '💊',
-    Entertainment: '🎉',
-    Clothing: '👗',
-    Miscellaneous: '📦',
+    Food: faUtensils,
+    Transportation: faCar,
+    Housing: faHome,
+    Utilities:  faBolt, 
+    Insurance: faFileShield, 
+    Healthcare: faHeartbeat, 
+    Entertainment: faFilm, 
+    Clothing: faTshirt, 
+    Miscellaneous: faBoxOpen,
   };
 
   function getCategoryIcon(category) {
@@ -56,7 +58,7 @@
   <div class="category-list">
     {#each $expensesByCategory as { Category, TotalAmount }}
     <div class="category-item">
-      <span class="category-icon">{getCategoryIcon(Category)}</span>
+      <span class="category-icon"><FontAwesomeIcon icon={getCategoryIcon(Category)}/></span>
       <div class="category-details">
         <span class="category-name">{Category}</span>
         <span class="category-amount">{formatAmount(TotalAmount)}</span>
@@ -128,7 +130,7 @@
   }
 
   .category-icon {
-    font-size: 2rem;
+    font-size: 1.4rem;
     margin-right: 15px;
   }
 

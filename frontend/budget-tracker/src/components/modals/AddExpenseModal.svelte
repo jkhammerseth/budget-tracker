@@ -11,7 +11,6 @@
 
     let name = '', amount = 0, category = '', frequency = 'One-time', startDate = '', endDate = '';
     let message = '', theme = 'info', duration = 3000;
-    let numberOfPeople = 1, userShare = 0;
 
     let isRecurring = false; // track the checkbox state
     

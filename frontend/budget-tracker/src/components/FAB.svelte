@@ -1,6 +1,7 @@
 <script>
     import { writable } from 'svelte/store';
     import AddExpenseModal from './modals/AddExpenseModal.svelte';  // Import the modal component
+    import AddIncomeModal from './modals/AddIncomeModal.svelte';
     import { activeModal } from "../stores/activeModal";  // Import the activeModal store
 
     const isFabMenuOpen = writable(false);
@@ -13,9 +14,10 @@
         activeModal.set("addExpense");  // Trigger the modal to open
     }
 
-    function handleAddIncome() {
-        console.log('Add Income action triggered');
+    function openAddIncomeModal() {
+      activeModal.set("addIncome");
     }
+
 
     function handleAddOther() {
         console.log('Add Other action triggered');
@@ -26,7 +28,7 @@
     <!-- FAB Menu -->
     {#if $isFabMenuOpen}
         <div class="fab-menu">
-            <button class="fab-menu-item" on:click={handleAddIncome}>Add Income</button>
+            <button class="fab-menu-item" on:click={openAddIncomeModal}>Add Income</button>
             <button class="fab-menu-item" on:click={openAddExpenseModal}>Add Expense</button>
             <button class="fab-menu-item" on:click={handleAddOther}>Other</button>
         </div>
@@ -41,6 +43,10 @@
 <!-- Conditionally render the modal when the activeModal is set to 'addExpense' -->
 {#if $activeModal === 'addExpense'}
     <AddExpenseModal />
+{/if}
+
+{#if $activeModal === 'addIncome'}
+    <AddIncomeModal />
 {/if}
   
   <style>

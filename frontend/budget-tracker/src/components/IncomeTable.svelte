@@ -1,11 +1,41 @@
 <script>
-  import { filteredIncome } from '../stores/filteredIncome';
   import { onMount } from 'svelte';
-  import FaRegTrashAlt from 'svelte-icons/fa/FaRegTrashAlt.svelte'
   import { fetchIncome } from '../routes/api/fetchIncome';
   import { derived } from 'svelte/store';
   import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
+  //import ExpenseModal from './modals/ExpenseModal.svelte';
+  import { fromISOString, formatAmount } from '../utility/functions'
+  import { activeModal } from '../stores/activeModal';
 
+  import { faUtensils, faCar, faHome, faBolt, faFileShield,  faChartLine,faHeartbeat, faFilm, faTshirt, faDollarSign,faCalendarDay ,faCalendar, faMoneyBill} from '@fortawesome/free-solid-svg-icons';
+  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+  import { filteredIncome } from '../stores/filteredIncome';
+
+  let selectedIncome = null;
+
+  onMount(fetchIncome);
+
+  const categoryIcons = {
+    Salary: faMoneyBill,
+    Investment: faChartLine,
+    Rental: faHome,
+    Interest:  faBolt, 
+    Other: faFileShield, 
+  };
+
+  function getCategoryIcon(category) {
+    return categoryIcons[category] || '📁'; // Default icon if category not found
+  }
+
+  function openIncomeModal(income) {
+    selectedIncome = income;
+    activeModal.set('income');
+  }
+
+  function closeIncomeModal() {
+    selectedIncome = null;
+    activeModal.set(null); // Close modal by resetting activeModal state
+  }
 
   let nameFilter = '';
   let sortKey = 'date';
@@ -23,205 +53,165 @@
         }
         return sortOrder === 'asc' ? comparison : -comparison;
       });
-});
+  });
 
-  onMount(fetchIncome);
+  function daysUntil(dateString) {
+    const today = new Date();
+    const targetDate = new Date(dateString);
 
-  function formatAmount(amount) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NOK' }).format(amount);
-  }
-
-  function resetFilter() {
-    nameFilter = '';
-    sortKey = 'date';
-    sortOrder = 'asc';
-    fetchIncome();
-  }
-
-  function fromISOString(isoString) {
-  const date = new Date(isoString);
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
-  const year = date.getFullYear().toString().substr(-2); 
-
-  // Formatting the date as DD.MM.YY
-  return `${day}.${month}.${year}`;
+    const diffTime = targetDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+    return diffDays >= 0 ? `${diffDays}d left` : `${Math.abs(diffDays)}d ago`;
   }
 </script>
 
+<div class="container">
+  {#if $filteredIncome === undefined}
+    <p>Loading income...</p>
+  {:else if $filteredIncome.length === 0}
+    <p>No income found.</p>
+  {:else}
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="text-right">Date</th>
+            <th class="text-right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each $filteredSortedIncome as income}
+            <tr on:click={() => openIncomeModal(income)}>
+              <td >
+                <span class="category-icon"><FontAwesomeIcon icon={getCategoryIcon(income.Category)}/></span>
+                <span>{income.Category}</span>
+              </td>
+              <td class="name">{income.Name}</td>
+              <td><IncomeStatusButton {income} /></td>
+              <td class="text-right">
+                <div class="date-in-table">
+                  <span class="date-logo"><FontAwesomeIcon icon={faCalendarDay}/></span>
+                  <div class="date-info">
+                    <span class="date">{fromISOString(income.Date)}</span>
+                    <span class="days-until">{daysUntil(income.Date)}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="text-right-number">{formatAmount(income.Amount)}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
+
+  {#if $activeModal === 'income' && selectedIncome}
+    <IncomeModal 
+      income={selectedIncome} 
+    />
+  {/if}
+</div>
+
 <style>
   .container {
-    max-width: full-width;
-    font-family: var(--font-family);
-    border-radius: 20px;
-    margin: 40px auto;
-    margin-top: 20px;
+    width: 100%;
   }
 
-  .filter-sort-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background-color: var(--component-bg-color);
-    border: 1px solid black;
-    border-radius: 10px;
-    border-bottom: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-
+  .table-wrapper {
+    overflow-x: auto;
   }
-
-  .search-field, .select-filter, .filter-order, .apply-filter-button, .icon-button {
-    border: 1px solid #ccc; 
-    padding: 8px 12px;
-    border-radius: 4px;
-    outline: none;
-  }
-
-  .search-field:focus, .select-filter:focus, .filter-order:focus {
-    border-color: #3A87F2;
-  }
-
-  .apply-filter-button, .icon-button {
-    cursor: pointer; 
-    background-color: #3A87F2;
-    color: white;
-    border: none; 
-    transition: background-color 0.2s;
-  }
-
-  .apply-filter-button:hover {
-    background-color: #2a6db2;
-  }
-
-
-
-  input[type="text"],
-  select {
-    width: calc(100% - 20px);
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
+  .name,
+  .date {
+    font-weight: 450;
   }
 
   table {
-    width: 42.86rem;
-    border-collapse: separate;
-    border-spacing: 0;
-    background-color: var(--component-bg-color);
-    box-shadow: var(--componet-box-shadow);
-    font-family: 'Roboto', sans-serif;
-    overflow: hidden;
-    border: 1px solid black;
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
   }
 
   th, td {
-    padding: 12px 15px; 
+    padding: 12px 16px;
     text-align: left;
-    border-bottom: solid 1px #ddd;
+    border-bottom: 1px solid #eee;
   }
 
   th {
-    background-color: #3A87F2;
-    color: white;
-    font-weight: normal;
+    background-color: #F9FAFB; 
+    height: 2.5rem;
+    border-bottom: 1px solid #E5E7EB;
   }
 
-  tr:hover {
-    background-color: #f5f5f5; 
-  }
-
-  tr:last-child td {
-    border-bottom: none;
+  td.text-right-number,
+  th.text-right, td.text-right {
+    text-align: right;
   }
 
   tr:nth-child(odd) {
-    background-color: #E8EFF1;
+    background-color: #f9f9f9;
   }
-  .icon-button {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    outline: inherit;
-    display: inline-flex;
+
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+  .date-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    align-items: right;
+  }
+
+  .text-right {
+    text-align: right;
+    align-items: right;
+  }
+
+  .date-in-table {
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
-}
+    justify-content: flex-end;
+  }
 
-.icon {
-    width: 16px; 
-    height: 16px;
-    color: #333; 
-}
+  .category-icon {
+    font-size: 1.5rem;
+    margin-right: 12px;
+  }
 
-.icon:hover {
-    color: #e74c3c;
-}
+  .days-until {
+    font-size: 0.85rem;
+    color: #777;
+  }
 
-.icon:active {
-    transform: scale(0.9);
-}
+  .date-logo {
+    margin-right: 10px;
+  }
+
+  /* Media Query for smaller screens */
+  @media (max-width: 768px) {
+    table {
+      display: block;
+      overflow-x: auto;
+    }
+
+    th, td {
+      padding: 8px 12px;
+      font-size: 12px; /* Reduce font size on smaller screens */
+    }
+
+    .category-icon {
+      font-size: 1.5rem; /* Reduce icon size on smaller screens */
+    }
+
+    .days-until {
+      font-size: 0.75rem; /* Smaller text for 'days left' on mobile */
+    }
+  }
 </style>
-
-<div class="container">
-  <div class="filter-sort-container">
-    <input class="search-field" type="text" placeholder="Search by name..." bind:value="{nameFilter}">
-    
-    <select class="select-filter" bind:value="{sortKey}">
-      <option value="amount">Sort by Amount</option>
-      <option value="category">Sort by Category</option>
-      <option value="date">Sort by Date</option>
-    </select>
-  
-    <select class="filter-order" bind:value="{sortOrder}">
-      <option value="asc">Ascending</option>
-      <option value="desc">Descending</option>
-    </select>
-
-    <button class="apply-filter-button" on:click={fetchIncome} title="Apply">
-      <span>Apply</span>
-    </button>
-    <button class="icon-button" on:click={resetFilter} title="Remove filter">
-      <span class="icon"><FaRegTrashAlt/></span>
-  </div>
-  {#if $filteredIncome.length > 0}
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Amount</th>
-          <th>Category</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {#each $filteredSortedIncome as income}
-          <tr>
-            <td>{income.Name}</td>
-            <td>{formatAmount(income.Amount)}</td>
-            <td>{income.Category}</td>
-            <td>
-              <IncomeStatusButton {income}/>
-            </td>
-            <td>{fromISOString(income.Date)}</td>
-            <td>
-              <AddCommentButton entry={income}/>
-              <UpdateIncomeButton {income}/>
-              <DeleteIncomeButton {income}/>
-            </td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-  {/if}
-
-  {#if $filteredIncome.length === 0}
-    <p>No income found.</p>
-  {/if}
-</div>

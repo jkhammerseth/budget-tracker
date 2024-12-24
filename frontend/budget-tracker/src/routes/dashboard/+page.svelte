@@ -2,37 +2,30 @@
   import { onMount } from "svelte";
   import { formatAmount, fromISOString } from "../../utility/functions";
   import { derived } from "svelte/store";
-  import { filteredExpenses } from "../../stores/filteredExpenses";
-  import { filteredIncome } from "../../stores/filteredIncome";
-  import { selectionMode, selectedYear, selectedMonth, selectedStartDate, selectedEndDate, selectedDay } from '../../stores/selectionMode';
+  import { filteredExpenses, expensesChange } from "../../stores/filteredExpenses";
+  import { filteredIncome, incomeChange } from "../../stores/filteredIncome";
+  import { selectionMode, selectedStartDate, selectedEndDate } from '../../stores/selectionMode';
   import { fetchIncome } from "../api/fetchIncome";
   import { FetchExpenses } from "../api/fetchExpenses";
-  import { faDollarSign, faMoneyBillTrendUp, faCar, faHome, faBolt, faFileShield, faHeartbeat, faFilm, faTshirt, faBoxOpen, faCalendar } from '@fortawesome/free-solid-svg-icons';
+  import { faDollarSign, faMoneyBillTrendUp, faCalendar } from '@fortawesome/free-solid-svg-icons';
   import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+  import { expenses } from '../../stores/expenses';
 
   onMount(() => {
         FetchExpenses();
         fetchIncome();
     });
 
+  const today = new Date();
+  const twoWeeksFromToday = new Date();
+  twoWeeksFromToday.setDate(today.getDate() + 14);
 
-  let monthlyData = [
-      { name: "Jul", income: 52000, expenses: 38000 },
-      { name: "Aug", income: 54000, expenses: 42000 },
-      { name: "Sep", income: 51000, expenses: 37000 },
-      { name: "Oct", income: 55000, expenses: 41000 },
-      { name: "Nov", income: 53000, expenses: 39000 },
-      { name: "Dec", income: 56000, expenses: 43000 }
-  ];
-
-  let upcomingPayments = [
-      { name: "Rent", amount: "9000 kr", due: "Dec 31", status: "Not Paid" },
-      { name: "Internet Bill", amount: "599 kr", due: "Dec 28", status: "Upcoming" },
-      { name: "Power Bill", amount: "1200 kr", due: "Dec 30", status: "Upcoming" }
-  ];
-
-  
-
+  const upcomingExpenses = derived(expenses, $expenses => {
+    return $expenses.filter(expense => {
+      const expenseDate = new Date(expense.PaymentDate);
+      return expenseDate >= today && expenseDate <= twoWeeksFromToday;
+    });
+  });
 
   const totalIncome = derived(filteredIncome, $filteredIncome => {
     return $filteredIncome.reduce((total, income) => total + income.Amount, 0);
@@ -58,7 +51,7 @@
                   {#if $selectionMode === 'month'}
                   <p>Monthly Balance</p>
                   <p class="amounts">{formatAmount($totalBalance)}</p>
-                  <p>+2.5% from last month</p>
+                  
                   {:else}
                   {#if $selectionMode === 'range'}
                   <p>Balance from {fromISOString($selectedStartDate)} to {fromISOString($selectedEndDate)}</p>
@@ -81,7 +74,9 @@
               {#if $selectionMode === 'month'}
                 <p>Monthly Income</p>
                 <p class="amounts">{$totalIncome >= 0 ? formatAmount($totalIncome) : '-' + formatAmount(-$totalIncome)}</p>
-                <p>+2.5% from last month</p>
+                <p class="trend {$incomeChange >= 0 ? 'positive' : 'negative'}">
+                  {$incomeChange >= 0 ? '+' : ''}{$incomeChange.toFixed(1)}% from last month
+                </p> 
               {:else}
                 {#if $selectionMode === 'range'}
                   <p>Income from {fromISOString($selectedStartDate)} to {fromISOString($selectedEndDate)}</p>
@@ -104,12 +99,14 @@
             {#if $selectionMode === 'month'}
               <p>Monthly Expenses</p>
               <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
-              <p>+2.5% from last period</p>
+              <p class="expense-trend {$expensesChange > 0 ? 'positive' : 'negative'}">
+                {$expensesChange > 0 ? '+' : ''}{$expensesChange.toFixed(1)}% from last month
+              </p>              
             {:else}
               {#if $selectionMode === 'range'}
                 <p>Expenses from {fromISOString($selectedStartDate)} to {fromISOString($selectedEndDate)}</p>
                 <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
-                <p>+2.5% from last period</p>
+                <p>+2.5% from last period</p> 
               {:else}
                 <p>Total Expenses</p>
                 <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
@@ -130,22 +127,65 @@
           <div>Chart Placeholder</div>
       </div>
       <div class="upcoming-payments">
-          <h2>Upcoming Payments</h2>
-          {#each upcomingPayments as payment}
-              <div class="payment">
-                  <div>
-                      <p>{payment.name}</p>
-                      <p>{payment.due}</p>
-                  </div>
-                  <div>{payment.amount}</div>
-              </div>
-          {/each}
+        <div class="upcoming-header">
+        <h2>Upcoming Payments</h2>
+        <span class="calendar-icon"><FontAwesomeIcon icon={faCalendar}/></span>
       </div>
+        {#if $upcomingExpenses.length > 0}
+            {#each $upcomingExpenses as payment}
+            <div class="payment">
+                <div>
+                    <p class="payment-name">{payment.Name}</p>
+                    <p>Due {fromISOString(payment.PaymentDate)}</p>
+                </div>
+                <div>
+                    <p class="payment-amount">{formatAmount(payment.Amount)}</p>
+                    <span>{payment.Paid ? "Paid" : "Upcoming"}</span>
+                </div>
+                
+            </div>
+            {/each}
+            <div class="view">
+              <a class="view-link" href="/expenses">View All</a>
+            </div>
+        {:else}
+            <p>No upcoming payments this month.</p>
+        {/if}
+    </div>
+    
   </div>
 </div>
 
 
 <style>
+
+  .trend.positive {
+    color: green;
+  }
+
+  .trend.negative {
+    color: red;
+  }
+
+  .expense-trend.positive {
+    color: red;
+  }
+
+  .expense-trend.negative {
+    color: green;
+  }
+
+  .view {
+    display: flex;
+    justify-content: center;
+  }
+
+  .view-link {
+    text-decoration: none;
+    font-size: 1.1rem;
+    padding: 16px;
+  }
+
 
   .dashboard {
       padding: 16px;
@@ -154,7 +194,7 @@
   }
 
   .amounts {
-    font-weight: 800;
+    font-weight: 700;
     font-size: 1.7rem;
   }
 
@@ -238,11 +278,32 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
+  .upcoming-header {
+    display: flex;
+    justify-content: space-between;
+
+  }
+
   .payment {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      border-radius: 8px;
+      padding: 2px 10px;
+      margin-bottom: 5px;
+      background-color: #f9f9f9;
+      transition: background-color 0.2s ease;
+  }
+  .payment-amount,
+  .payment-name {
+    text-transform: capitalize;
+    padding: 0;
+    font-weight: 600;
+    font-size: 1.2em;
+  }
+
+  .calendar-icon {
+    padding: 16px;
   }
 
   .payment:last-child {

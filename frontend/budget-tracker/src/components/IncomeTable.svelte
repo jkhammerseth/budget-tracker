@@ -3,11 +3,10 @@
   import { fetchIncome } from '../routes/api/fetchIncome';
   import { derived } from 'svelte/store';
   import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
-  //import ExpenseModal from './modals/ExpenseModal.svelte';
   import { fromISOString, formatAmount } from '../utility/functions'
   import { activeModal } from '../stores/activeModal';
 
-  import { faUtensils, faCar, faHome, faBolt, faFileShield,  faChartLine,faHeartbeat, faFilm, faTshirt, faDollarSign,faCalendarDay ,faCalendar, faMoneyBill} from '@fortawesome/free-solid-svg-icons';
+  import { faHome, faBolt, faFileShield,  faChartLine, faCalendarDay ,faCalendar, faMoneyBill} from '@fortawesome/free-solid-svg-icons';
   import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
   import { filteredIncome } from '../stores/filteredIncome';
 

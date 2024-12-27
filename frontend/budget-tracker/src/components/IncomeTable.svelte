@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { fetchIncome } from '../routes/api/fetchIncome';
   import { derived } from 'svelte/store';
-  import IncomeStatusButton from './ui/IncomeStatusButton.svelte';
   import { fromISOString, formatAmount } from '../utility/functions'
   import { activeModal } from '../stores/activeModal';
 
@@ -76,7 +75,6 @@
           <tr>
             <th>Category</th>
             <th>Name</th>
-            <th>Status</th>
             <th class="text-right">Date</th>
             <th class="text-right">Amount</th>
           </tr>
@@ -89,7 +87,6 @@
                 <span>{income.Category}</span>
               </td>
               <td class="name">{income.Name}</td>
-              <td><IncomeStatusButton {income} /></td>
               <td class="text-right">
                 <div class="date-in-table">
                   <span class="date-logo"><FontAwesomeIcon icon={faCalendarDay}/></span>
@@ -107,11 +104,7 @@
     </div>
   {/if}
 
-  {#if $activeModal === 'income' && selectedIncome}
-    <IncomeModal 
-      income={selectedIncome} 
-    />
-  {/if}
+  
 </div>
 
 <style>

@@ -1,31 +1,28 @@
 <script>
-  import { filteredExpenses } from '../stores/filteredExpenses';
+  import { categories } from '../stores/categories'; // Import your category store
   import { derived } from 'svelte/store';
-  import { FetchExpenses } from '../routes/api/fetchExpenses';
+  import { filteredExpenses } from '../stores/filteredExpenses';
   import { onMount } from 'svelte';
-  import { formatAmount } from '../utility/functions'
-  import { faUtensils, faCar, faHome, faBolt, faFileShield, faHeartbeat, faFilm, faTshirt, faBoxOpen, faCalendar } from '@fortawesome/free-solid-svg-icons';
-  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+  import { FetchExpenses } from '../routes/api/fetchExpenses';
+  import { formatAmount } from '../utility/functions';
 
   onMount(FetchExpenses);
 
-  const categoryIcons = {
-    Food: faUtensils,
-    Transportation: faCar,
-    Housing: faHome,
-    Utilities:  faBolt, 
-    Insurance: faFileShield, 
-    Healthcare: faHeartbeat, 
-    Entertainment: faFilm, 
-    Clothing: faTshirt, 
-    Miscellaneous: faBoxOpen,
-  };
+  // Dynamically derive icons from the store
+  let categoryIcons;
 
-  function getCategoryIcon(category) {
-    return categoryIcons[category] || '📁'; // Default icon if category not found
+  $: categories.subscribe((catList) => {
+    categoryIcons = catList.reduce((acc, cat) => {
+      acc[cat.name] = cat.icon;
+      return acc;
+    }, {});
+  });
+
+  function getCategoryIcon(categoryName) {
+    return categoryIcons[categoryName] || null; // Return null if no icon is found
   }
 
-  const expensesByCategory = derived(filteredExpenses, $filteredExpenses => {
+  const expensesByCategory = derived(filteredExpenses, ($filteredExpenses) => {
     const categoryMap = new Map();
 
     // Aggregate totals for each category
@@ -50,6 +47,7 @@
   }
 </script>
 
+
 <div class="category-container">
   <div class="container-header">
     <h2>Categories</h2>
@@ -58,7 +56,13 @@
   <div class="category-list">
     {#each $expensesByCategory as { Category, TotalAmount }}
     <div class="category-item">
-      <span class="category-icon"><FontAwesomeIcon icon={getCategoryIcon(Category)}/></span>
+      <span class="category-icon">
+        {#if getCategoryIcon(Category)}
+          <svelte:component this={getCategoryIcon(Category)} size="24" />
+        {:else}
+          📁 <!-- Fallback icon -->
+        {/if}
+      </span>
       <div class="category-details">
         <span class="category-name">{Category}</span>
         <span class="category-amount">{formatAmount(TotalAmount)}</span>

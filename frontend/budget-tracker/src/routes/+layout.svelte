@@ -17,7 +17,7 @@
 
 <Header />
 <Sidenav />
-<div class="fab"><Fab isOpen=True /></div>
+<div class="fab"><Fab /></div>
 
 <div class="main-content">
   <div class="content-wrapper">

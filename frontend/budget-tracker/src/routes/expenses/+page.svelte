@@ -19,10 +19,6 @@
 </script>
 
 <style>
-    :root {
-        --max-width: 1200px;
-        --table-padding: 10px;
-    }
 
     /* Container for the whole dashboard */
     .dashboard-container {
@@ -31,7 +27,7 @@
         gap: 20px;
         padding: 40px;
         margin: 0 auto;
-        max-width: var(--max-width);
+        max-width: 75%;
         flex-direction: column; /* For mobile responsiveness */
     }
 

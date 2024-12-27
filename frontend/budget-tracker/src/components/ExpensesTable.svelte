@@ -7,26 +7,25 @@
   import ExpenseModal from './modals/ExpenseModal.svelte';
   import { fromISOString, formatExpenseAmount } from '../utility/functions'
   import { activeModal } from '../stores/activeModal';
+  import { categories } from '../stores/categories';
+  import { Calendar, Info } from 'lucide-svelte';
 
-  import { faUtensils, faCar, faHome, faBolt, faFileShield, faHeartbeat, faFilm, faTshirt, faBoxOpen, faCalendar } from '@fortawesome/free-solid-svg-icons';
   import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
 
   let selectedExpense = null;
 
-  const categoryIcons = {
-    Food: faUtensils,
-    Transportation: faCar,
-    Housing: faHome,
-    Utilities:  faBolt, 
-    Insurance: faFileShield, 
-    Healthcare: faHeartbeat, 
-    Entertainment: faFilm, 
-    Clothing: faTshirt, 
-    Miscellaneous: faBoxOpen,
-  };
+  // Dynamically derive icons from the store
+  let categoryIcons;
 
-  function getCategoryIcon(category) {
-    return categoryIcons[category] || '📁'; // Default icon if category not found
+  $: categories.subscribe((catList) => {
+    categoryIcons = catList.reduce((acc, cat) => {
+      acc[cat.name] = cat.icon;
+      return acc;
+    }, {});
+  });
+
+  function getCategoryIcon(categoryName) {
+    return categoryIcons[categoryName] || null; // Return null if no icon is found
   }
 
   function openExpenseModal(expense) {
@@ -89,15 +88,23 @@
         <tbody>
           {#each $filteredSortedExpenses as expense}
             <tr on:click={() => openExpenseModal(expense)}>
-              <td >
-                <span class="category-icon"><FontAwesomeIcon icon={getCategoryIcon(expense.Category)}/></span>
-                <span>{expense.Category}</span>
-              </td>
+              <td class="category-cell">
+                <div class="category-content">
+                  {#if getCategoryIcon(expense.Category)}
+                    <span class="category-icon">
+                      <svelte:component this={getCategoryIcon(expense.Category)} size="20" />
+                    </span>
+                  {:else}
+                    📁
+                  {/if}
+                  <span class="category-name">{expense.Category}</span>
+                </div>
+              </td>              
               <td class="name">{expense.Name}</td>
               <td><ExpenseStatusButton {expense} /></td>
               <td class="text-right">
                 <div class="date-in-table">
-                  <span class="date-logo"><FontAwesomeIcon icon={faCalendar}/></span>
+                  <span class="date-logo"><Calendar size="20" /></span>
                   <div class="date-info">
                     <span class="date">{fromISOString(expense.PaymentDate)}</span>
                     <span class="days-until">{daysUntil(expense.PaymentDate)}</span>
@@ -184,10 +191,31 @@
     justify-content: flex-end;
   }
 
-  .category-icon {
-    font-size: 1.5rem;
-    margin-right: 12px;
+  .category-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and name */
+}
+
+  .category-content {
+    display: flex;
+    align-items: center;
+    justify-items: space-between;
   }
+
+  .category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+  }
+
+  .category-name {
+    font-size: 0.95rem; /* Adjust text size as needed */
+    color: #333;
+    font-weight: 450;
+  }
+
 
   .days-until {
     font-size: 0.85rem;
@@ -195,7 +223,7 @@
   }
 
   .date-logo {
-    margin-right: 10px;
+    margin-right: 5px;
   }
 
   /* Media Query for smaller screens */

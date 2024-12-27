@@ -1,151 +1,137 @@
 <script>
-  import { onMount } from 'svelte';
-  import { expenses } from '../stores/expenses';
-  import { FetchExpenses } from '../routes/api/fetchExpenses';
-  import { derived } from 'svelte/store';
-  import { user } from '../stores/user';
+  import { onMount } from "svelte";
+  import { formatAmount, formatExpenseAmount, fromISOString, daysFromNow } from "../utility/functions";
+  import { derived } from "svelte/store";
+  import { FetchExpenses } from "../routes/api/fetchExpenses";
+  import { expenses } from '../stores/expenses'
+  import { Calendar } from 'lucide-svelte';
+
 
   onMount(FetchExpenses);
 
   const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const twoWeeksFromToday = new Date();
+  twoWeeksFromToday.setDate(today.getDate() + 14);
 
   const upcomingExpenses = derived(expenses, $expenses => {
     return $expenses.filter(expense => {
-      const expenseDate = new Date(expense.PaymentDate); 
-      return expenseDate >= today && 
-             expense.Paid !== true &&
-             expenseDate >= firstDayOfMonth && 
-             expenseDate <= lastDayOfMonth;
+      const expenseDate = new Date(expense.PaymentDate);
+      return expenseDate >= today && expenseDate <= twoWeeksFromToday;
     });
   });
 
-  // Calculate total upcoming expenses
-  const totalUpcomingExpenses = derived(upcomingExpenses, $upcomingExpenses => {
-    return $upcomingExpenses.reduce((acc, expense) => acc + Number(expense.Amount), 0); 
-  });
 </script>
 
-<style>
-.container {
-  max-width: 600px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: var(--component-bg-color);
-  box-shadow: var(--component-box-shadow);
-  border-radius: var(--component-border-radius);
-  border: var(--component-border);
-  font-family: var(--font-family);
-}
-
-.greeting {
-  font-size: 1.4em;
-  color: var(--text-color);
-  margin-bottom: 20px;
-}
-
-.overview {
-  font-size: 1em;
-  color: var(--text-color-light);
-  margin-bottom: 40px;
-}
-
-h3 {
-  color: var(--text-color);
-  margin: 20px 0 10px;
-}
-
-p {
-  font-size: 1.1em;
-  color: var(--text-color);
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-ul {
-  margin-top: 20px;
-}
-
-li {
-  background-color: white;
-  margin-bottom: 10px;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-left: 4px solid var(--primary-color);
-  transition: transform 0.2s ease-in-out;
-}
-
-li:hover {
-  transform: translateY(-2px);
-}
-
-li strong {
-  color: var(--text-color);
-  font-size: 1.1em;
-}
-
-.amount {
-  color: var(--error-color);
-  font-weight: bold;
-}
-
-.date {
-  color: var(--text-color-light);
-}
-
-li:last-child {
-  margin-bottom: 0;
-}
-
-/* Scrollable list styles */
-ul {
-  max-height: 300px; /* Adjust based on your preference */
-  overflow-y: auto;
-}
-
-/* Scrollbar styles */
-ul::-webkit-scrollbar {
-  width: 6px;
-}
-
-ul::-webkit-scrollbar-thumb {
-  background: var(--primary-color);
-  border-radius: 10px;
-}
-
-ul::-webkit-scrollbar-track {
-  background: var(--background-color);
-}
-
-</style>
-
-<div class="container">
-  <div class="greeting">
-    Welcome back, {$user.firstName}!
-  </div>
-  <div class="overview">
-    Here is an overview of your finances for the month.
-  </div>
-  <h3>Scheduled Transactions This Month</h3>
-  <p>Total Upcoming Expenses: {$totalUpcomingExpenses} kr</p>
-  <ul>
-    {#if $upcomingExpenses.length === 0}
-      <li>No more expenses this month!</li>
-    {:else}
-      {#each $upcomingExpenses as expense}
-        <li>
-          <strong>{expense.Name}</strong>
-          <div>
-            <span class="amount">{expense.Amount} kr</span>
-            <span class="date"> - Due on {new Date(expense.PaymentDate).toLocaleDateString()}</span>
-          </div>
-        </li>
-      {/each}
-    {/if}
-  </ul>
+<div class="upcoming-payments">
+  <div class="upcoming-header">
+  <h2>Upcoming Payments</h2>
+  <span class="calendar-icon"><Calendar size="24" /></span>
 </div>
+  {#if $upcomingExpenses.length > 0}
+      {#each $upcomingExpenses as payment}
+      <div class="payment">
+          <div>
+              <p class="payment-name">{payment.Name}</p>
+              <p>Due {daysFromNow(payment.PaymentDate)}</p>
+          </div>
+          <div>
+              <p class="payment-amount">{formatExpenseAmount(payment.Amount)}</p>
+              <span>{payment.Paid ? "Paid" : "Upcoming"}</span>
+          </div>
+          
+      </div>
+      {/each}
+      <div class="view">
+        <a class="view-link" href="/expenses" aria-label="View all expenses">View All</a>
+      </div>
+  {:else}
+  <p>No upcoming payments in the next two weeks.</p>
+  {/if}
+</div>
+
+<style>
+  .upcoming-payments {
+      background: #fff;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .upcoming-header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .upcoming-header h2 {
+  margin: 0;
+  }
+
+  .upcoming-header .calendar-icon {
+    display: flex;
+    align-items: center;
+  }
+
+  .payment {
+    display: flex;
+    justify-content: space-between; /* Space between name and amount */
+    align-items: center; /* Align items vertically */
+    border-radius: 8px;
+    padding: 8px 16px; /* Add more padding for better spacing */
+    margin-bottom: 8px; /* Spacing between payment items */
+    background-color: #f9f9f9;
+    transition: background-color 0.2s ease;
+  }
+
+  .payment:hover {
+    background-color: #e8f0fe; /* Subtle blue on hover */
+  }
+
+  .payment div {
+    display: flex;
+    flex-direction: column; /* Align text within each section */
+  }
+
+  .payment-name {
+    text-transform: capitalize;
+    font-weight: 600;
+    font-size: 1.2rem; /* Adjust size */
+    margin: 0;
+    margin-top: 1rem;
+  }
+
+  .payment-amount {
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-align: right; /* Align amount text to the right */
+    margin: 0;
+  }
+
+  .calendar-icon {
+    padding: 16px;
+  }
+
+  .payment:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+  }
+
+  .payment:last-child {
+      margin-bottom: 0;
+  }
+
+  .view {
+    display: flex;
+    justify-content: center;
+  }
+
+  .view-link {
+    text-decoration: none;
+    font-size: 1.1rem;
+    padding: 16px;
+  }
+
+  .view-link:hover {
+  color: #4a86ff;
+  text-decoration: none;
+}
+</style>

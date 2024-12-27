@@ -1,32 +1,23 @@
 <script>
   import { onMount } from "svelte";
-  import { formatAmount, fromISOString } from "../../utility/functions";
-  import { derived } from "svelte/store";
+  import { formatAmount, formatExpenseAmount, fromISOString, daysFromNow } from "../../utility/functions";
+  import { derived, writable } from "svelte/store";
   import { filteredExpenses, expensesChange } from "../../stores/filteredExpenses";
   import { filteredIncome, incomeChange } from "../../stores/filteredIncome";
   import { selectionMode, selectedStartDate, selectedEndDate } from '../../stores/selectionMode';
   import { fetchIncome } from "../api/fetchIncome";
   import { FetchExpenses } from "../api/fetchExpenses";
-  import { faDollarSign, faMoneyBillTrendUp, faCalendar } from '@fortawesome/free-solid-svg-icons';
-  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
   import { expenses } from '../../stores/expenses';
+  import { recentTransactions } from '../../stores/filteredTransactions'
+  import { WalletMinimal, TrendingUp, TrendingDown, Calendar, Info } from 'lucide-svelte';
+  import UpcomingExpenses from "../../components/UpcomingExpenses.svelte";
+  import RecentTransactions from "../../components/RecentTransactions.svelte";
 
   onMount(() => {
         FetchExpenses();
         fetchIncome();
     });
-
-  const today = new Date();
-  const twoWeeksFromToday = new Date();
-  twoWeeksFromToday.setDate(today.getDate() + 14);
-
-  const upcomingExpenses = derived(expenses, $expenses => {
-    return $expenses.filter(expense => {
-      const expenseDate = new Date(expense.PaymentDate);
-      return expenseDate >= today && expenseDate <= twoWeeksFromToday;
-    });
-  });
-
+  
   const totalIncome = derived(filteredIncome, $filteredIncome => {
     return $filteredIncome.reduce((total, income) => total + income.Amount, 0);
   });
@@ -64,11 +55,11 @@
                   {/if}
               </div>
               <div class="total-label">
-                <span class="total-icon"><FontAwesomeIcon icon={faDollarSign}/></span>
+                <span class="total-icon"><WalletMinimal size="24" /></span>
               </div>
           </div>
       </div>
-      <div class="card">
+      <div class="card income">
           <div class="card-header">
             <div>
               {#if $selectionMode === 'month'}
@@ -89,7 +80,7 @@
               {/if}
             </div>            
               <div class="income-label">
-                <span class="income-icon"><FontAwesomeIcon icon={faMoneyBillTrendUp}/></span>
+                <span class="income-icon"><TrendingUp size="24" /> </span>
               </div>
           </div>
       </div>
@@ -114,7 +105,7 @@
             {/if}
           </div>  
             <div class="expense-label">
-              <span class="expense-icon"><FontAwesomeIcon icon={faMoneyBillTrendUp}/></span>
+              <span class="expense-icon"><TrendingDown size="24" /></span>
             </div>
         </div>
     </div>
@@ -126,32 +117,10 @@
           <h2>Income vs Expenses</h2>
           <div>Chart Placeholder</div>
       </div>
-      <div class="upcoming-payments">
-        <div class="upcoming-header">
-        <h2>Upcoming Payments</h2>
-        <span class="calendar-icon"><FontAwesomeIcon icon={faCalendar}/></span>
-      </div>
-        {#if $upcomingExpenses.length > 0}
-            {#each $upcomingExpenses as payment}
-            <div class="payment">
-                <div>
-                    <p class="payment-name">{payment.Name}</p>
-                    <p>Due {fromISOString(payment.PaymentDate)}</p>
-                </div>
-                <div>
-                    <p class="payment-amount">{formatAmount(payment.Amount)}</p>
-                    <span>{payment.Paid ? "Paid" : "Upcoming"}</span>
-                </div>
-                
-            </div>
-            {/each}
-            <div class="view">
-              <a class="view-link" href="/expenses">View All</a>
-            </div>
-        {:else}
-            <p>No upcoming payments this month.</p>
-        {/if}
-    </div>
+      
+    <UpcomingExpenses />
+    
+    <RecentTransactions />
     
   </div>
 </div>
@@ -175,17 +144,7 @@
     color: green;
   }
 
-  .view {
-    display: flex;
-    justify-content: center;
-  }
-
-  .view-link {
-    text-decoration: none;
-    font-size: 1.1rem;
-    padding: 16px;
-  }
-
+ 
 
   .dashboard {
       padding: 16px;
@@ -271,42 +230,10 @@
     border-radius: 20%;
   }
 
-  .upcoming-payments {
-      background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
 
-  .upcoming-header {
-    display: flex;
-    justify-content: space-between;
 
-  }
+.income {
+  background-color: #d6ffd6;
+}
 
-  .payment {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-radius: 8px;
-      padding: 2px 10px;
-      margin-bottom: 5px;
-      background-color: #f9f9f9;
-      transition: background-color 0.2s ease;
-  }
-  .payment-amount,
-  .payment-name {
-    text-transform: capitalize;
-    padding: 0;
-    font-weight: 600;
-    font-size: 1.2em;
-  }
-
-  .calendar-icon {
-    padding: 16px;
-  }
-
-  .payment:last-child {
-      margin-bottom: 0;
-  }
 </style>

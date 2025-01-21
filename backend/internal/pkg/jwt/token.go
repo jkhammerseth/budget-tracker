@@ -16,7 +16,7 @@ var SecretKey = os.Getenv("JWT_SECRET_KEY")
 
 // GenerateToken creates a new JWT token for a given user ID.
 func GenerateToken(userID uint) (string, error) {
-	expirationTime := time.Now().Add(60 * time.Minute) // Token expires in 60 minutes
+	expirationTime := time.Now().Add(180 * time.Minute) // Token expires in 60 minutes
 	claims := &Claims{
 		UserID: userID,
 		StandardClaims: jwt.StandardClaims{

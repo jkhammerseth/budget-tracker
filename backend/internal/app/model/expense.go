@@ -5,18 +5,22 @@ import (
 )
 
 type Expense struct {
-	ID          uint   `gorm:"primaryKey"`        // Use uint for auto-incrementing IDs
-	Name        string `gorm:"type:varchar(255)"` // Define string length if necessary
-	Amount      float64
-	Category    string     `gorm:"type:varchar(100)"` // Define string length if necessary
-	Frequency   string     `gorm:"type:varchar(50)"`  // one-time, daily, weekly, monthly, yearly
-	StartDate   *time.Time `gorm:"type:date"`         // When recurring payments start
-	EndDate     *time.Time `gorm:"type:date"`         // When recurring payments end
-	PaymentDate *time.Time `gorm:"type:date"`         // Specific day of the month/year (e.g., 1 for 1st of the month)
-	Paid        bool       `gorm:"type:boolean"`      // Use boolean for true/false values
-	Comment     string     `gorm:"type:varchar(255)"` // Define string length if necessary
-	UserID      uint       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	LoanID      *uint      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Ensure this matches the type of Loan.ID if it references it
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID            uint         `gorm:"primaryKey" json:"id"`
+	UniqueHash    string       `gorm:"uniqueIndex"`
+	Name          string       `gorm:"type:varchar(255)" json:"name"`
+	Amount        float64      `json:"amount"`
+	CategoryID    uint         `gorm:"not null" json:"category_id"`
+	Category      Category     `json:"category"`
+	SubcategoryID *uint        `json:"subcategory_id,omitempty"`
+	Subcategory   *Subcategory `json:"subcategory,omitempty"`
+	Frequency     string       `gorm:"type:varchar(50)" json:"frequency"`
+	StartDate     *time.Time   `gorm:"type:date" json:"start_date,omitempty"`
+	EndDate       *time.Time   `gorm:"type:date" json:"end_date,omitempty"`
+	PaymentDate   *time.Time   `gorm:"type:date" json:"payment_date,omitempty"`
+	Paid          bool         `gorm:"type:boolean" json:"paid"`
+	Comment       string       `gorm:"type:varchar(255)" json:"comment"`
+	UserID        uint         `json:"user_id"`
+	LoanID        *uint        `json:"loan_id,omitempty"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
 }

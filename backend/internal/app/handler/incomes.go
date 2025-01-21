@@ -163,3 +163,20 @@ func DeleteIncome(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Income deleted"})
 }
+
+// for testing
+func DeleteAllIncomes(c *gin.Context) {
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	db := db.GetDB()
+	if result := db.Where("user_id = ?", userID).Delete(&model.Income{}); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "All incomes deleted successfully"})
+}

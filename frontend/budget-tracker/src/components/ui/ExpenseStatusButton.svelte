@@ -1,12 +1,13 @@
 <script>
     import { FetchExpenses } from "../../routes/api/fetchExpenses";
+    import { Check } from 'lucide-svelte';
   
     export let expense;
     const today = new Date();
   
     async function updateStatusOfExpense(status) {
         try {
-            const response = await fetch(`http://localhost:8080/api/users/expenses/${expense.ID}`, {
+            const response = await fetch(`http://localhost:8080/api/users/expenses/${expense.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -29,17 +30,17 @@
     }
   
     function handleStatusClick() {
-        const newStatus = expense.Paid === true ? false : true;
+        const newStatus = expense.paid === true ? false : true;
         updateStatusOfExpense(newStatus);
     }
   
     function getStatusLabel(expense) {
         const today = new Date().setHours(0, 0, 0, 0); // Set the time to midnight to ignore time part
       
-        if (expense.Paid) return 'Paid';
+        if (expense.paid) return 'Paid';
   
-        const paymentDate = new Date(expense.PaymentDate).setHours(0, 0, 0, 0); // Normalize the payment date to midnight
-        if (!expense.Paid && paymentDate < today) return 'Overdue';
+        const paymentDate = new Date(expense.payment_date).setHours(0, 0, 0, 0); // Normalize the payment date to midnight
+        if (!expense.paid && paymentDate < today) return 'Overdue';
   
         return 'Not Paid';
       }
@@ -47,10 +48,10 @@
     function getStatusClass() {
       const today = new Date().setHours(0, 0, 0, 0); // Set the time to midnight to ignore time part
       
-      if (expense.Paid) return 'expense-status-button--paid';
+      if (expense.paid) return 'expense-status-button--paid';
   
-      const paymentDate = new Date(expense.PaymentDate).setHours(0, 0, 0, 0); // Normalize the payment date to midnight
-      if (!expense.Paid && paymentDate < today) return 'expense-status-button--overdue';
+      const paymentDate = new Date(expense.payment_date).setHours(0, 0, 0, 0); // Normalize the payment date to midnight
+      if (!expense.paid && paymentDate < today) return 'expense-status-button--overdue';
   
       return 'expense-status-button--not-paid';
     }

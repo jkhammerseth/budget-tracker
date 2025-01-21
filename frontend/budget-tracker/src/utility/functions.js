@@ -11,11 +11,23 @@ export function fromISOString(isoString) {
     return `${month} ${day}`;
   }
 
+  export function formatDate(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${day}.${month}.${year}`;
+  }
+
 export function formatAmount(amount) {
   return amount.toLocaleString('en-US') + ' kr';
 }
 
 export function formatExpenseAmount(amount) {
+  if (amount === 0) {
+    return amount + ' kr'
+  }
   return '-' + amount + ' kr';
 }
 

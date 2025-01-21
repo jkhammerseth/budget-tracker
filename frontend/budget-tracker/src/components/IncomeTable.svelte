@@ -4,29 +4,19 @@
   import { derived } from 'svelte/store';
   import { fromISOString, formatAmount } from '../utility/functions'
   import { activeModal } from '../stores/activeModal';
-
-  import { faHome, faBolt, faFileShield,  faChartLine, faCalendarDay ,faCalendar, faMoneyBill} from '@fortawesome/free-solid-svg-icons';
   import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
   import { filteredIncome } from '../stores/filteredIncome';
+  import { getIconComponent } from '../utility/icons'
+  import { Calendar, Info } from 'lucide-svelte';
+  import IncomeModal from './modals/IncomeModal.svelte';
 
   let selectedIncome = null;
 
   onMount(fetchIncome);
 
-  const categoryIcons = {
-    Salary: faMoneyBill,
-    Investment: faChartLine,
-    Rental: faHome,
-    Interest:  faBolt, 
-    Other: faFileShield, 
-  };
-
-  function getCategoryIcon(category) {
-    return categoryIcons[category] || '📁'; // Default icon if category not found
-  }
-
   function openIncomeModal(income) {
     selectedIncome = income;
+    console.log("clicked income")
     activeModal.set('income');
   }
 
@@ -82,14 +72,22 @@
         <tbody>
           {#each $filteredSortedIncome as income}
             <tr on:click={() => openIncomeModal(income)}>
-              <td >
-                <span class="category-icon"><FontAwesomeIcon icon={getCategoryIcon(income.Category)}/></span>
-                <span>{income.Category}</span>
+              <td class="category-cell">
+                <div class="category-content">
+                  {#if getIconComponent(income.Category)}
+                    <span class="category-icon">
+                      <svelte:component this={getIconComponent(income.Category)} size="20" />
+                    </span>
+                  {:else}
+                    📁
+                  {/if}
+                  <span class="category-name">{income.Category}</span>
+                </div>
               </td>
               <td class="name">{income.Name}</td>
               <td class="text-right">
                 <div class="date-in-table">
-                  <span class="date-logo"><FontAwesomeIcon icon={faCalendarDay}/></span>
+                  <span class="date-logo"><Calendar size="20" /></span>
                   <div class="date-info">
                     <span class="date">{fromISOString(income.Date)}</span>
                     <span class="days-until">{daysUntil(income.Date)}</span>
@@ -104,7 +102,9 @@
     </div>
   {/if}
 
-  
+  {#if $activeModal === 'income' && selectedIncome}
+  <IncomeModal income={selectedIncome} />
+{/if}
 </div>
 
 <style>
@@ -172,9 +172,29 @@
     justify-content: flex-end;
   }
 
+  .category-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Space between icon and name */
+}
+
+  .category-content {
+    display: flex;
+    align-items: center;
+    justify-items: left;
+  }
+
   .category-icon {
-    font-size: 1.5rem;
-    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+  }
+
+  .category-name {
+    font-size: 0.95rem; /* Adjust text size as needed */
+    color: #333;
+    font-weight: 450;
   }
 
   .days-until {
@@ -183,7 +203,7 @@
   }
 
   .date-logo {
-    margin-right: 10px;
+    margin-right: 5px;
   }
 
   /* Media Query for smaller screens */

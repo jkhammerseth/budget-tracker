@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import Sidenav from "../components/Sidenav.svelte";
   import Header from '../components/Header.svelte';
-  import FilterHeader from "../components/FilterHeader.svelte";
   import Fab from '../components/FAB.svelte';
   import '../global.css'
 

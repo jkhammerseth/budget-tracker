@@ -17,8 +17,9 @@ export async function login(username, password) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Login failed");
     }
-    
-    user.set({ loggedIn: true, userId: null});
+
+    // Fetch user details after successful login
+    await checkAuthStatus();
 
     goto('/');
   } catch (error) {
@@ -27,6 +28,7 @@ export async function login(username, password) {
   }
 }
 
+
 export function logout() {
   try {
     fetch("http://localhost:8080/api/auth/logout", {
@@ -34,7 +36,7 @@ export function logout() {
       credentials: 'include', 
     }).then((response) => {
       if (response.ok) {
-        user.set({ loggedIn: false, userId: null });
+        checkAuthStatus();
         goto('/login');
       } else {
         console.error("Logout failed");

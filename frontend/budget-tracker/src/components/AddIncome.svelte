@@ -112,6 +112,45 @@ function resetFormFields() {
 </script>
 
 
+<div class="form-container">
+<h2>Add Income</h2>
+<div class="form-control">
+  <input id="name" placeholder="Name" type="text" bind:value={name} />
+</div>
+<div class="form-control">
+  <input id="amount" placeholder="Amount" type="number" bind:value={amount} />
+</div>
+<div class="form-control">
+  <select id="category" bind:value={category}>
+      <option value="">Select category</option>
+      {#each categories as cat} 
+        <option value={cat}>{cat}</option>
+      {/each}
+    </select>
+</div>
+<div class="form-control">
+  <select id="frequency" bind:value={frequency}>
+    <option value="">Select frequency</option>
+    <option value="One-time">One-time</option>
+    <option value="Daily">Daily</option>
+    <option value="Weekly">Weekly</option>
+    <option value="Monthly">Monthly</option>
+    <option value="Annually">Annually</option>
+  </select>
+</div>
+<div class="form-control">
+  <input id="date" type="date" bind:value={startDate} />
+</div>
+{#if !(frequency === 'One-time' || frequency === '')}
+  <div class="form-control">
+    <input id="date" type="date" bind:value={endDate} />
+  </div>
+{/if} 
+<button on:click={addIncome}>Add Income</button>
+<Toast {message} {theme} {duration} />
+</div>
+
+
 <style>
   .form-container {
     width: 18rem;
@@ -173,41 +212,3 @@ function resetFormFields() {
       }
   }
 </style>
-
-<div class="form-container">
-<h2>Add Income</h2>
-<div class="form-control">
-  <input id="name" placeholder="Name" type="text" bind:value={name} />
-</div>
-<div class="form-control">
-  <input id="amount" placeholder="Amount" type="number" bind:value={amount} />
-</div>
-<div class="form-control">
-  <select id="category" bind:value={category}>
-      <option value="">Select category</option>
-      {#each categories as cat} 
-        <option value={cat}>{cat}</option>
-      {/each}
-    </select>
-</div>
-<div class="form-control">
-  <select id="frequency" bind:value={frequency}>
-    <option value="">Select frequency</option>
-    <option value="One-time">One-time</option>
-    <option value="Daily">Daily</option>
-    <option value="Weekly">Weekly</option>
-    <option value="Monthly">Monthly</option>
-    <option value="Annually">Annually</option>
-  </select>
-</div>
-<div class="form-control">
-  <input id="date" type="date" bind:value={startDate} />
-</div>
-{#if !(frequency === 'One-time' || frequency === '')}
-  <div class="form-control">
-    <input id="date" type="date" bind:value={endDate} />
-  </div>
-{/if} 
-<button on:click={addIncome}>Add Income</button>
-<Toast {message} {theme} {duration} />
-</div>

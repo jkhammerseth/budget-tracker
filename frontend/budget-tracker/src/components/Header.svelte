@@ -1,7 +1,6 @@
 <script>
     import { goto } from '$app/navigation';
-    
-    let searchQuery = '';
+    import { searchQuery } from '../stores/searchQuery.js'
     
     const handleSearch = () => {
       console.log('Search query:', searchQuery);
@@ -11,6 +10,8 @@
     const navigateTo = (path) => {
       goto(path);
     };
+
+    $: console.log($searchQuery);
   </script>
   
   <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -26,17 +27,17 @@
       <input
         type="text"
         class="search-input"
-        bind:value={searchQuery}
+        bind:value={$searchQuery}
         placeholder="Search..."
       />
     </div>
   
     <!-- Navigation Links -->
     <nav class="nav">
-      <button class="nav-link" on:click={() => navigateTo('/dashboard')}>Dashboard</button>
+      <button class="nav-link" on:click={() => navigateTo('/dashboard')}>Overview</button>
       <button class="nav-link" on:click={() => navigateTo('/expenses')}>Expenses</button>
       <button class="nav-link" on:click={() => navigateTo('/income')}>Income</button>
-      <button class="nav-link" on:click={() => navigateTo('/calendar')}>Calendar</button>
+      <button class="nav-link" on:click={() => navigateTo('/budgets')}>Budgets</button>
     </nav>
   </header>
   
@@ -59,12 +60,6 @@
       display: flex;
       align-items: center;
       cursor: pointer;
-    }
-  
-    .logo-image {
-      width: 40px;
-      height: 40px;
-      margin-right: 10px;
     }
   
     .app-name {

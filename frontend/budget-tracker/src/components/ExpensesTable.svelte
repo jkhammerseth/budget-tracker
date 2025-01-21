@@ -1,117 +1,149 @@
 <script>
   import { filteredExpenses } from '../stores/filteredExpenses';
-  import { onMount } from 'svelte';
-  import { FetchExpenses } from '../routes/api/fetchExpenses';
-  import { derived } from 'svelte/store';
-  import ExpenseStatusButton from './ui/ExpenseStatusButton.svelte';
-  import ExpenseModal from './modals/ExpenseModal.svelte';
-  import { fromISOString, formatExpenseAmount } from '../utility/functions'
+  import { writable, derived } from 'svelte/store';
   import { activeModal } from '../stores/activeModal';
-  import { categories } from '../stores/categories';
-  import { Calendar, Info } from 'lucide-svelte';
-
-  import { FontAwesomeIcon } from '@fortawesome/svelte-fontawesome';
+  import ExpenseModal from './modals/ExpenseModal.svelte';
+  import ExpenseStatusButton from './ui/ExpenseStatusButton.svelte';
+  import { fromISOString, formatExpenseAmount } from '../utility/functions';
+  import { getIconComponent } from '../utility/icons';
+  import { Calendar } from 'lucide-svelte';
 
   let selectedExpense = null;
 
-  // Dynamically derive icons from the store
-  let categoryIcons;
+  export const sortKey = writable(null); // Initial sort key
+  export const sortOrder = writable(null); // Initial sort order
 
-  $: categories.subscribe((catList) => {
-    categoryIcons = catList.reduce((acc, cat) => {
-      acc[cat.name] = cat.icon;
-      return acc;
-    }, {});
-  });
+const filteredSortedExpenses = derived(
+  [filteredExpenses, sortKey, sortOrder],
+  ([$filteredExpenses, $sortKey, $sortOrder]) => {
+    if (!$sortKey || !$sortOrder) return $filteredExpenses;
 
-  function getCategoryIcon(categoryName) {
-    return categoryIcons[categoryName] || null; // Return null if no icon is found
+    return [...$filteredExpenses].sort((a, b) => {
+      let comparison = 0;
+
+      if ($sortKey === 'category') {
+        comparison = a.category.name.localeCompare(b.category.name);
+      } else if ($sortKey === 'name') {
+        comparison = a.name.localeCompare(b.name);
+      } else if ($sortKey === 'date') {
+        comparison = new Date(a.payment_date) - new Date(b.payment_date);
+      } else if ($sortKey === 'amount') {
+        comparison = a.amount - b.amount;
+      } else if ($sortKey === 'status') {
+        comparison = a.status.localeCompare(b.status);
+      }
+
+      return $sortOrder === 'asc' ? comparison : -comparison;
+    });
   }
+);
+
+
+function toggleSort(key) {
+  sortKey.update((currentKey) => {
+    if (currentKey === key) {
+      sortOrder.update((currentOrder) => {
+        if (currentOrder === 'asc') return 'desc';
+        if (currentOrder === 'desc') {
+          sortKey.set(null); // Reset sort
+          return null;
+        }
+        return 'asc';
+      });
+    } else {
+      sortKey.set(key);
+      sortOrder.set('asc'); // Default to ascending
+    }
+    return key;
+  });
+}
+
 
   function openExpenseModal(expense) {
     selectedExpense = expense;
-    activeModal.set('expense'); // Make sure 'expense' is set to trigger the modal
+    activeModal.set('expense');
   }
 
   function closeExpenseModal() {
     selectedExpense = null;
-    activeModal.set(null); // Close modal by resetting activeModal state
+    activeModal.set(null);
   }
-
-  let nameFilter = '';
-  let sortKey = 'date';
-  let sortOrder = 'asc';
-
-  const filteredSortedExpenses = derived(filteredExpenses, $filteredExpenses => {
-    return $filteredExpenses
-      .filter(expense => expense.Name.toLowerCase().includes(nameFilter.toLowerCase()))
-      .sort((a, b) => {
-        let comparison = 0;
-        if (a[sortKey] < b[sortKey]) {
-          comparison = -1;
-        } else if (a[sortKey] > b[sortKey]) {
-          comparison = 1;
-        }
-        return sortOrder === 'asc' ? comparison : -comparison;
-      });
-  });
-
-  onMount(FetchExpenses);
 
   function daysUntil(dateString) {
     const today = new Date();
     const targetDate = new Date(dateString);
 
     const diffTime = targetDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays >= 0 ? `${diffDays}d left` : `${Math.abs(diffDays)}d ago`;
   }
+
 </script>
 
 <div class="container">
   {#if $filteredExpenses === undefined}
     <p>Loading expenses...</p>
-  {:else if $filteredExpenses.length === 0}
+  {:else if ($filteredExpenses.length === 0)}
     <p>No expenses found.</p>
   {:else}
     <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Category</th>
-            <th>Name</th>
-            <th>Status</th>
-            <th class="text-right">Date</th>
-            <th class="text-right">Amount</th>
+            <th on:click={() => toggleSort('category')}>
+              Category 
+              {#if $sortKey === 'category'}
+              <span class="arrows">
+                {#if $sortOrder === 'asc'}
+                  <svelte:component this={getIconComponent('ArrowUp')} size="20" />
+                {:else}
+                  <svelte:component this={getIconComponent('ArrowDown')} size="20" />
+                {/if}
+              </span>
+              {/if}
+            </th>
+            <th on:click={() => toggleSort('name')}>
+              Name {$sortKey === 'name' ? ($sortOrder === 'asc' ? '▲' : '▼') : ''}
+            </th>
+            <th on:click={() => toggleSort('status')}>
+              Status {$sortKey === 'status' ? ($sortOrder === 'asc' ? '▲' : '▼') : ''}
+            </th>
+            <th on:click={() => toggleSort('date')} class="text-right">
+              Date {$sortKey === 'date' ? ($sortOrder === 'asc' ? '▲' : '▼') : ''}
+            </th>
+            <th on:click={() => toggleSort('amount')} class="text-right">
+              Amount {$sortKey === 'amount' ? ($sortOrder === 'asc' ? '▲' : '▼') : ''}
+            </th>
           </tr>
         </thead>
+        
         <tbody>
           {#each $filteredSortedExpenses as expense}
             <tr on:click={() => openExpenseModal(expense)}>
               <td class="category-cell">
                 <div class="category-content">
-                  {#if getCategoryIcon(expense.Category)}
+                  {#if getIconComponent(expense.category.name)}
                     <span class="category-icon">
-                      <svelte:component this={getCategoryIcon(expense.Category)} size="20" />
+                      <svelte:component this={getIconComponent(expense.category.name)} size="20" />
                     </span>
                   {:else}
                     📁
                   {/if}
-                  <span class="category-name">{expense.Category}</span>
+                  <span class="category-name">{expense.category.name}</span>
                 </div>
-              </td>              
-              <td class="name">{expense.Name}</td>
+              </td>
+              <td>{expense.name}</td>
               <td><ExpenseStatusButton {expense} /></td>
               <td class="text-right">
                 <div class="date-in-table">
                   <span class="date-logo"><Calendar size="20" /></span>
                   <div class="date-info">
-                    <span class="date">{fromISOString(expense.PaymentDate)}</span>
-                    <span class="days-until">{daysUntil(expense.PaymentDate)}</span>
+                    <span class="date">{fromISOString(expense.payment_date)}</span>
+                    <span class="days-until">{daysUntil(expense.payment_date)}</span>
                   </div>
                 </div>
               </td>
-              <td class="text-right-number">{formatExpenseAmount(expense.Amount)}</td>
+              <td class="text-right-number">{formatExpenseAmount(expense.amount)}</td>
             </tr>
           {/each}
         </tbody>
@@ -120,9 +152,7 @@
   {/if}
 
   {#if $activeModal === 'expense' && selectedExpense}
-    <ExpenseModal 
-      expense={selectedExpense} 
-    />
+    <ExpenseModal expense={selectedExpense} on:close={closeExpenseModal} />
   {/if}
 </div>
 
@@ -151,6 +181,10 @@
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid #eee;
+  }
+
+  .arrows {
+    margin-top: 1rem;
   }
 
   th {

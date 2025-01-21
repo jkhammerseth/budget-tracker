@@ -3,7 +3,7 @@
   import FaRegUserCircle from 'svelte-icons/fa/FaRegUserCircle.svelte';
   import { goto } from '$app/navigation';
   import FaUserAltSlash from 'svelte-icons/fa/FaUserAltSlash.svelte';
-  import { checkAuthStatus } from '../routes/api/auth.js';
+  import { checkAuthStatus, logout } from '../routes/api/auth.js';
   import { user } from '../stores/user.js';
   import Calendar from './Calendar.svelte';
   import FaCog from 'svelte-icons/fa/FaCog.svelte';
@@ -11,6 +11,8 @@
   import ExpensesByCategoryBox from './ExpensesByCategoryBox.svelte';
   import FaBars from 'svelte-icons/fa/FaBars.svelte';
   import FaTimes from 'svelte-icons/fa/FaTimes.svelte';
+  import { Menu, X, Settings, User, UserRoundX } from 'lucide-svelte';
+  import { activeModal } from "../stores/activeModal.js";
 
   let showModal = false;
   let isCollapsed = false; // To toggle the sidenav state
@@ -20,11 +22,17 @@
   });
 
   function handleSettingsClick() {
-    showModal = true;
+    activeModal.set("settings");
   }
 
   function toggleSidenav() {
     isCollapsed = !isCollapsed;
+  }
+
+  function handleLogOut() {
+    logout()
+    console.log("user logged out");
+    goto('/login')
   }
 </script>
 
@@ -32,9 +40,9 @@
   <!-- Collapse/Expand Button -->
   <button class="collapse-button" on:click={toggleSidenav}>
     {#if isCollapsed}
-      <FaBars />
+      <Menu  size="40" />
     {:else}
-      <FaTimes />
+      <X  size="40" />
     {/if}
   </button>
 
@@ -42,15 +50,14 @@
   <div class="user-menu">
     {#if $user.loggedIn}
       <button class="settings-button {isCollapsed ? 'collapsed' : ''}" on:click={() => handleSettingsClick()}>
-        <FaCog />
+        <Settings size="40" />
       </button>
-      <button class="user-image {isCollapsed ? 'collapsed' : ''}">
-        <FaRegUserCircle />
+      <button class="user-image {isCollapsed ? 'collapsed' : ''}" on:click={() => handleLogOut()}>
+        <User  size="40"/>
       </button>
     {:else}
       <button class="user-button" on:click|preventDefault={() => goto('/login')}>
-        <FaUserAltSlash />
-        <span class="full-name" class:hide={isCollapsed}>Sign In</span>
+        <UserRoundX size="40" />
       </button>
     {/if}
     <SettingsModal bind:showModal />

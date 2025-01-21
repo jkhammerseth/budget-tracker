@@ -19,8 +19,8 @@ export const totalTransactions = derived(
     // Calculate the net total (income - expenses)
     return $filteredTransactions.reduce((total, transaction) => {
       return transaction.type === 'income'
-        ? total + transaction.Amount
-        : total - transaction.Amount;
+        ? total + transaction.amount
+        : total - transaction.amount;
     }, 0);
   }
 );
@@ -30,11 +30,11 @@ export const recentTransactions = derived(
     filteredTransactions,
     $filteredTransactions => {
       // Filter only expenses where Paid is true
-      const paidTransactions = $filteredTransactions.filter(transaction => transaction.Paid);
+      const paidTransactions = $filteredTransactions.filter(transaction => transaction.paid);
   
       // Sort the paid transactions by date (newest first)
       const sortedTransactions = paidTransactions.sort(
-        (a, b) => new Date(b.Date || b.PaymentDate) - new Date(a.Date || a.PaymentDate)
+        (a, b) => new Date(b.date || b.payment_date) - new Date(a.Date || a.payment_date)
       );
   
       const recentLimit = 3; 

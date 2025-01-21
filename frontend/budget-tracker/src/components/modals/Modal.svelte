@@ -1,6 +1,9 @@
 <script>
     import { activeModal } from "../../stores/activeModal";
+    import { X } from 'lucide-svelte';
+
     export let modalId; // Unique ID for the modal
+    export let title = ''; // Title for the modal
     export let onClose = () => {};
 
     function close() {
@@ -12,8 +15,14 @@
 {#if $activeModal === modalId}
     <div class="modal-overlay" on:click={close}>
         <div class="modal-content" on:click|stopPropagation>
+            <div class="modal-header">
+                <span class="modal-title">{title}</span>
+                <button class="cross" on:click={close}>
+                    <X size="40" />
+                </button>
+            </div>
             <slot />
-            <button on:click={close}>Close</button>
+            <button class="close-button" on:click={close}>Close</button>
         </div>
     </div>
 {/if}
@@ -34,11 +43,34 @@
         background: white;
         padding: 20px;
         border-radius: 8px;
-        max-width: 400px;
+        max-width: 500px;
         width: 90%;
     }
 
-    button {
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        padding-left: 1.5rem;
+        color: var(--text-color);
+    }
+
+    .cross {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-color);
+        font-size: 1.5rem;
+        transition: color 0.3s ease;
+    }
+
+    .close-button {
         width: 100%;
         padding: 14px;
         background-color: var(--primary-button-color);
@@ -51,7 +83,7 @@
         transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
     }
 
-    button:hover {
+    .close-button:hover {
         background-color: var(--primary-button-hover-color);
         transform: translateY(-2px);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

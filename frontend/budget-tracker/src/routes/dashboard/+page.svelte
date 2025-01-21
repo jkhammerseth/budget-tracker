@@ -1,21 +1,19 @@
 <script>
   import { onMount } from "svelte";
-  import { formatAmount, formatExpenseAmount, fromISOString, daysFromNow } from "../../utility/functions";
-  import { derived, writable } from "svelte/store";
+  import { formatAmount, fromISOString } from "../../utility/functions";
+  import { derived } from "svelte/store";
   import { filteredExpenses, expensesChange } from "../../stores/filteredExpenses";
   import { filteredIncome, incomeChange } from "../../stores/filteredIncome";
   import { selectionMode, selectedStartDate, selectedEndDate } from '../../stores/selectionMode';
   import { fetchIncome } from "../api/fetchIncome";
   import { FetchExpenses } from "../api/fetchExpenses";
-  import { expenses } from '../../stores/expenses';
-  import { recentTransactions } from '../../stores/filteredTransactions'
-  import { WalletMinimal, TrendingUp, TrendingDown, Calendar, Info } from 'lucide-svelte';
-  import UpcomingExpenses from "../../components/UpcomingExpenses.svelte";
-  import RecentTransactions from "../../components/RecentTransactions.svelte";
+  import { WalletMinimal, TrendingUp, TrendingDown } from 'lucide-svelte';
+  import { getCategories } from '../../routes/api/fetchCategories.js'
 
   onMount(() => {
         FetchExpenses();
         fetchIncome();
+        getCategories();
     });
   
   const totalIncome = derived(filteredIncome, $filteredIncome => {
@@ -23,7 +21,7 @@
   });
 
   const totalExpenses = derived(filteredExpenses, $filteredExpenses => {
-    return $filteredExpenses.reduce((total, expense) => total + expense.Amount, 0);
+    return $filteredExpenses.reduce((total, expense) => total + expense.amount, 0);
   });
 
   const totalBalance = derived(
@@ -39,18 +37,28 @@
       <div class="card">
           <div class="card-header">
               <div>
+                {#if $selectionMode === 'year'}
+                  <p>Yearly Balance</p>
+                  <div class="chart">Chart Placeholder</div>
+                  <p class="amounts">{formatAmount($totalBalance)}</p>
+                  
+                  {:else}
                   {#if $selectionMode === 'month'}
                   <p>Monthly Balance</p>
+                  <div class="chart">Chart Placeholder</div>
                   <p class="amounts">{formatAmount($totalBalance)}</p>
                   
                   {:else}
                   {#if $selectionMode === 'range'}
                   <p>Balance from {fromISOString($selectedStartDate)} to {fromISOString($selectedEndDate)}</p>
+                  <div class="chart">Chart Placeholder</div>
                   <p class="amounts">{formatAmount($totalBalance)}</p>
                   <p>+2.5% from last period</p>
                     {:else}
                     <p>Total Balance</p>
+                    <div class="chart">Chart Placeholder</div>
                     <p class="amounts">{formatAmount($totalBalance)}</p>
+                  {/if}
                   {/if}
                   {/if}
               </div>
@@ -59,11 +67,21 @@
               </div>
           </div>
       </div>
+
       <div class="card income">
           <div class="card-header">
             <div>
+              {#if $selectionMode === 'year'}
+                <p>Yearly Income</p>
+                <div class="chart">Chart Placeholder</div>
+                <p class="amounts">{$totalIncome >= 0 ? formatAmount($totalIncome) : '-' + formatAmount(-$totalIncome)}</p>
+                <p class="trend {$incomeChange >= 0 ? 'positive' : 'negative'}">
+                  {$incomeChange >= 0 ? '+' : ''}{$incomeChange.toFixed(1)}% from last year
+                </p> 
+              {:else}
               {#if $selectionMode === 'month'}
                 <p>Monthly Income</p>
+                <div class="chart">Chart Placeholder</div>
                 <p class="amounts">{$totalIncome >= 0 ? formatAmount($totalIncome) : '-' + formatAmount(-$totalIncome)}</p>
                 <p class="trend {$incomeChange >= 0 ? 'positive' : 'negative'}">
                   {$incomeChange >= 0 ? '+' : ''}{$incomeChange.toFixed(1)}% from last month
@@ -71,12 +89,15 @@
               {:else}
                 {#if $selectionMode === 'range'}
                   <p>Income from {fromISOString($selectedStartDate)} to {fromISOString($selectedEndDate)}</p>
+                  <div class="chart">Chart Placeholder</div>
                   <p class="amounts">{$totalIncome >= 0 ? formatAmount($totalIncome) : '-' + formatAmount(-$totalIncome)}</p>
                   <p>+2.5% from last period</p>
                 {:else}
                   <p>Total Income</p>
+                  <div class="chart">Chart Placeholder</div>
                   <p class="amounts">{$totalIncome >= 0 ? formatAmount($totalIncome) : '-' + formatAmount(-$totalIncome)}</p>
                 {/if}
+              {/if}
               {/if}
             </div>            
               <div class="income-label">
@@ -84,11 +105,21 @@
               </div>
           </div>
       </div>
+
       <div class="card">
         <div class="card-header">
           <div>
+            {#if $selectionMode === 'year'}
+              <p>Yearly Expenses</p>
+              <div class="chart">Chart Placeholder</div>
+              <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
+              <p class="expense-trend {$expensesChange > 0 ? 'positive' : 'negative'}">
+                {$expensesChange > 0 ? '+' : ''}{$expensesChange.toFixed(1)}% from last year
+              </p>              
+            {:else}
             {#if $selectionMode === 'month'}
               <p>Monthly Expenses</p>
+              <div class="chart">Chart Placeholder</div>
               <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
               <p class="expense-trend {$expensesChange > 0 ? 'positive' : 'negative'}">
                 {$expensesChange > 0 ? '+' : ''}{$expensesChange.toFixed(1)}% from last month
@@ -96,12 +127,15 @@
             {:else}
               {#if $selectionMode === 'range'}
                 <p>Expenses from {fromISOString($selectedStartDate)} to {fromISOString($selectedEndDate)}</p>
+                <div class="chart">Chart Placeholder</div>
                 <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
                 <p>+2.5% from last period</p> 
               {:else}
                 <p>Total Expenses</p>
+                <div class="chart">Chart Placeholder</div>
                 <p class="amounts">{$totalExpenses >= 0 ? formatAmount($totalExpenses) : '-' + formatAmount(-$totalExpenses)}</p>
               {/if}
+            {/if}
             {/if}
           </div>  
             <div class="expense-label">
@@ -117,11 +151,6 @@
           <h2>Income vs Expenses</h2>
           <div>Chart Placeholder</div>
       </div>
-      
-    <UpcomingExpenses />
-    
-    <RecentTransactions />
-    
   </div>
 </div>
 
@@ -162,13 +191,15 @@
       flex-direction: column;
       gap: 16px;
       margin-bottom: 24px;
+      
   }
 
   .card {
       background: #fff;
       padding: 16px;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
   }
 
   .card .card-header {
@@ -184,14 +215,13 @@
   .main-content {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 40px;
   }
 
   .chart {
       background: #fff;
       padding: 16px;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .total-icon {

@@ -1,10 +1,10 @@
 import { writable } from 'svelte/store';
 
-export const selectionMode = writable(null);
+export const selectionMode = writable("month");
 
-export const selectedYear = writable(null);
+export const selectedYear = writable(new Date().getFullYear());
 
-export const selectedMonth = writable(null);
+export const selectedMonth = writable(new Date().getMonth());
 
 export const selectedStartDate = writable(null);
 

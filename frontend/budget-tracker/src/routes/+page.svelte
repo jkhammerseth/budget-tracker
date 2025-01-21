@@ -1,15 +1,17 @@
 <script>
-  import { Bell, Settings, User, TrendingUp, Wallet, Calendar, ArrowRight } from 'lucide-svelte';
+  import {  TrendingUp, Wallet, Calendar, ArrowRight } from 'lucide-svelte';
   import { user } from '../stores/user';
-  import { goto } from '$app/navigation';
   import { filteredExpenses } from '../stores/filteredExpenses';
   import { filteredIncome } from '../stores/filteredIncome';
-  import { formatAmount, fromISOString } from '../utility/functions';
+  import { formatAmount, formatExpenseAmount } from '../utility/functions';
   import { onMount } from 'svelte';
   import { derived } from "svelte/store";
   import { fetchIncome } from "../routes/api/fetchIncome";
   import { FetchExpenses } from "../routes/api/fetchExpenses"
   import { expenses } from '../stores/expenses';
+  import RecentTransactions from "../components/RecentTransactions.svelte";
+  import UpcomingExpenses from '../components/UpcomingExpenses.svelte';
+  import { selectionMode } from '../stores/selectionMode';
 
   onMount(() => {
         FetchExpenses();
@@ -22,8 +24,15 @@
   });
 
   const totalExpenses = derived(filteredExpenses, $filteredExpenses => {
-    return $filteredExpenses.reduce((total, expense) => total + expense.Amount, 0);
+    return $filteredExpenses.reduce((total, expense) => total + expense.amount, 0);
   });
+
+  const totalSavings = derived(filteredExpenses, $filteredExpenses => {
+    return $filteredExpenses
+        .filter(expense => expense.category.name === "Savings") // Filter by category
+        .reduce((total, expense) => total + expense.amount, 0); // Sum the amounts
+  });
+
 
   const totalBalance = derived(
   [totalIncome, totalExpenses],
@@ -38,14 +47,14 @@
 
   const upcomingExpenses = derived(expenses, $expenses => {
     return $expenses.filter(expense => {
-      const expenseDate = new Date(expense.PaymentDate);
+      const expenseDate = new Date(expense.payment_date);
       return expenseDate >= today && expenseDate <= twoWeeksFromToday;
     });
   });
 
   // Calculate total upcoming expenses
   const totalUpcomingExpenses = derived(upcomingExpenses, $upcomingExpenses => {
-    return $upcomingExpenses.reduce((acc, expense) => acc + Number(expense.Amount), 0); 
+    return $upcomingExpenses.reduce((acc, expense) => acc + Number(expense.amount), 0); 
   });
 
   let todayDate = new Date().toLocaleDateString('en-US', { 
@@ -59,7 +68,13 @@
 <div class="landing-page">
   <!-- Header -->
   <div class="header">
-    <div class="header-title">Welcome back, { $user.firstName }</div>
+    <div class="header-title">
+      {#if $user}
+        Welcome back, { $user.firstName }
+      {:else}
+          Loading...
+      {/if}
+    </div>
    
   </div>
 
@@ -81,17 +96,21 @@
       </div>
       <div class="snapshot-item monthly-savings">
         <div class="snapshot-title">
+          {#if $selectionMode === 'month'}
           <span>Monthly Savings</span>
+          {:else}
+          <span>Savings</span>
+          {/if}
           <TrendingUp class="icon" />
         </div>
-        <div class="snapshot-value">+4,500 kr</div>
+        <div class="snapshot-value">{formatAmount($totalSavings)}</div>
       </div>
       <div class="snapshot-item upcoming-bills">
         <div class="snapshot-title">
           <span>Upcoming Bills</span>
           <Calendar class="icon" />
         </div>
-        <div class="snapshot-value">10,799 kr</div>
+        <div class="snapshot-value">{formatExpenseAmount($totalUpcomingExpenses)}</div>
       </div>
     </div>
   </div>
@@ -124,46 +143,14 @@
   <!-- Important Updates -->
   <div class="updates">
     <div class="update">
-      <h2>Upcoming Bills</h2>
-      {#if $upcomingExpenses.length > 0}
-      {#each $upcomingExpenses as expense}
-      <div class="update-item">
-        <div>
-          <p>{expense.Name}</p>
-          <p>Due {fromISOString(expense.PaymentDate)}</p>
-        </div>
-        <p>{formatAmount(expense.Amount)}</p>
-      </div>
-      {/each}
-      {:else}
-        <p>No upcoming payments in the next two weeks.</p>
-        {/if}
+     
+      <UpcomingExpenses />
       
       
     </div>
 
     <div class="update">
-      <h2>Recent Activity</h2>
-      <div class="update-item">
-        <div class="activity-item">
-          <div class="activity-icon">🛒</div>
-          <div>
-            <p>Grocery Store</p>
-            <p>Today</p>
-          </div>
-        </div>
-        <p class="amount">-890 kr</p>
-      </div>
-      <div class="update-item">
-        <div class="activity-item">
-          <div class="activity-icon">💰</div>
-          <div>
-            <p>Salary Deposit</p>
-            <p>Yesterday</p>
-          </div>
-        </div>
-        <p class="amount">+32,500 kr</p>
-      </div>
+     <RecentTransactions />
     </div>
   </div>
 </div>
@@ -271,39 +258,5 @@
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .update-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-  }
-
-  .activity-item {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .activity-icon {
-    padding: 10px;
-    border-radius: 50%;
-    background-color: #f1f1f1;
-  }
-
-  .amount {
-    font-weight: bold;
-    color: #ff4d4d;
-  }
-
-  .update-item:nth-child(odd) {
-    background-color: #f9f9f9;
-  }
-
-  .update-item:nth-child(even) {
-    background-color: #e9f7e9;
   }
 </style>

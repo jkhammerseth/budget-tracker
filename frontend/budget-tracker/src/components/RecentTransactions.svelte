@@ -3,38 +3,46 @@
 
   import { recentTransactions } from '../stores/filteredTransactions'
   import { Info } from 'lucide-svelte';
+  import { getIconComponent } from '../utility/icons'
 </script>
 
 <div class="recent-transactions">
-    <div class="upcoming-header">
-      <h2>Recent Transactions</h2>
-      <span class="calendar-icon"><Info size="24" /></span>
-    </div>
-    <div class="transactions-list">
-      {#if $recentTransactions.length > 0}
-        {#each $recentTransactions as transaction}
-          <div class="transaction">
-            <div>
-              <p class="transaction-name">
-                {transaction.Name}
-              </p>
-              <p class="transaction-date">{fromISOString(transaction.PaymentDate || transaction.Date)}</p>
-            </div>
-            <p class="transaction-amount {transaction.type === 'income' ? 'income' : 'expense'}">
-              {transaction.type === 'income' 
-                ? formatAmount(transaction.Amount) 
-                : formatExpenseAmount(transaction.Amount)}
-            </p>
-    </div>
-        {/each}
-        <div class="view">
-          <a class="view-link" href="/" aria-label="View all transactions">View All Transactions</a>
-        </div>
-      {:else}
-        <p>No recent transactions to display.</p>
-      {/if}
-    </div>
+  <div class="section-header">
+    <h2>Recent Activity</h2>
+    <span class="icon"><Info size="24" /></span>
   </div>
+  <div class="transactions-list">
+    {#if $recentTransactions.length > 0}
+      {#each $recentTransactions as transaction}
+        <div class="transaction">
+          <div class="transaction-item">
+            <div class="category-icon">
+              {#if getIconComponent(transaction.category.name)}
+                <svelte:component this={getIconComponent(transaction.category.name)} size="24" />
+              {:else}
+                📁 <!-- Fallback icon -->
+              {/if}
+            </div>
+            <div class="transaction-details">
+              <p class="transaction-name">{transaction.name}</p>
+              <p class="transaction-date">{fromISOString(transaction.payment_date || transaction.date)}</p>
+            </div>
+          </div>
+          <p class="transaction-amount {transaction.type === 'income' ? 'income' : 'expense'}">
+            {transaction.type === 'income' 
+              ? formatAmount(transaction.amount) 
+              : formatExpenseAmount(transaction.amount)}
+          </p>
+        </div>
+      {/each}
+      <div class="view">
+        <a class="view-link" href="/expenses" aria-label="View all transactions">View All Transactions</a>
+      </div>
+    {:else}
+      <p>No recent transactions to display.</p>
+    {/if}
+  </div>
+</div>
 
   <style>
     .view {
@@ -53,23 +61,30 @@
     text-decoration: none;
 }
 
-.upcoming-header {
+.section-header {
     display: flex;
     justify-content: space-between;
 }
 
-  .upcoming-header h2 {
+  .section-header h2 {
   margin: 0;
   }
 
-  .upcoming-header .calendar-icon {
+  .section-header .icon {
     display: flex;
     align-items: center;
   }
 
 
-  .calendar-icon {
+  .icon {
     padding: 16px;
+  }
+
+  .category-icon {
+    padding: 10px;
+    border-radius: 50%;
+    background-color: #f1f1f1;
+    
   }
 
 
@@ -77,7 +92,6 @@
   background: #fff;
   padding: 16px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .recent-transactions h2 {
@@ -100,6 +114,12 @@
     transition: background-color 0.2s ease;
     }
 
+    .transaction-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
     .transaction:hover {
     background-color: #e8f0fe;
     }
@@ -119,12 +139,5 @@
     .transaction-amount {
     font-weight: 700;
     font-size: 1.2rem;
-    }
-    .transaction-amount.income {
-    color: #228927;
-    }
-
-    .transaction-amount.expense {
-    color: #f46b64;
     }
   </style>

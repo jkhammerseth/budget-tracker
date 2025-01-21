@@ -1,52 +1,70 @@
 <script>
-  import { categories } from '../stores/categories'; // Import your category store
+  import { categories } from '../stores/categories';
   import { derived } from 'svelte/store';
   import { filteredExpenses } from '../stores/filteredExpenses';
   import { onMount } from 'svelte';
   import { FetchExpenses } from '../routes/api/fetchExpenses';
   import { formatAmount } from '../utility/functions';
+  import { getIconComponent } from '../utility/icons'
+  import { checkAuthStatus } from '../routes/api/auth';
+  import { activeModal } from "../stores/activeModal";
+  import CategoryModal from "../components/modals/CategoryModal.svelte"
+  import { getCategoryById } from "../routes/api/fetchCategories"
 
-  onMount(FetchExpenses);
+  let selectedCategory = null;
 
-  // Dynamically derive icons from the store
-  let categoryIcons;
-
-  $: categories.subscribe((catList) => {
-    categoryIcons = catList.reduce((acc, cat) => {
-      acc[cat.name] = cat.icon;
-      return acc;
-    }, {});
+  onMount(() => {
+    checkAuthStatus();
   });
-
-  function getCategoryIcon(categoryName) {
-    return categoryIcons[categoryName] || null; // Return null if no icon is found
-  }
+    
 
   const expensesByCategory = derived(filteredExpenses, ($filteredExpenses) => {
     const categoryMap = new Map();
 
     // Aggregate totals for each category
-    $filteredExpenses.forEach(({ Category, Amount }) => {
-      if (categoryMap.has(Category)) {
-        categoryMap.set(Category, categoryMap.get(Category) + Amount);
+    $filteredExpenses.forEach(({ category, amount }) => {
+      const categoryId = category.id;
+      const categoryName = category.name;
+      const categoryIcon = category.icon;
+      
+      if (categoryMap.has(categoryId)) {
+        const existing = categoryMap.get(categoryId);
+        categoryMap.set(categoryId, {
+          ...existing,
+          totalAmount: existing.totalAmount + amount
+        });
       } else {
-        categoryMap.set(Category, Amount);
+        categoryMap.set(categoryId, {
+          id: categoryId,
+          name: categoryName,
+          icon: categoryIcon,
+          totalAmount: amount
+        });
       }
     });
 
-    // Convert map to array and sort by TotalAmount (descending order)
-    return Array.from(categoryMap, ([Category, TotalAmount]) => ({
-      Category,
-      TotalAmount,
-    })).sort((a, b) => b.TotalAmount - a.TotalAmount);
+    // Convert map to array and sort by totalAmount
+    return Array.from(categoryMap.values())
+      .sort((a, b) => b.totalAmount - a.totalAmount);
   });
 
   function openAddCategoryModal() {
     console.log('Open Add Category Modal');
     // Add modal functionality later
   }
-</script>
 
+  async function openCategoryModal(category) {
+    try {
+        const categoryData = await getCategoryById(category);
+        selectedCategory = categoryData;
+        activeModal.set("category");
+    } catch (error) {
+        console.error("Error fetching category data:", error);
+        alert("Failed to load category details.");
+    }
+}
+
+</script>
 
 <div class="category-container">
   <div class="container-header">
@@ -54,23 +72,29 @@
     <button class="add-category-button" on:click={openAddCategoryModal}>+</button>
   </div>
   <div class="category-list">
-    {#each $expensesByCategory as { Category, TotalAmount }}
-    <div class="category-item">
-      <span class="category-icon">
-        {#if getCategoryIcon(Category)}
-          <svelte:component this={getCategoryIcon(Category)} size="24" />
-        {:else}
-          📁 <!-- Fallback icon -->
-        {/if}
-      </span>
-      <div class="category-details">
-        <span class="category-name">{Category}</span>
-        <span class="category-amount">{formatAmount(TotalAmount)}</span>
+    {#each $expensesByCategory as category}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div class="category-item" on:click={openCategoryModal(category)}>
+        <span class="category-icon">
+          {#if getIconComponent(category.name)}
+            <svelte:component this={getIconComponent(category.name)} size="24" />
+          {:else}
+            📁 <!-- Fallback icon -->
+          {/if}
+        </span>
+        <div class="category-details">
+          <span class="category-name">{category.name}</span>
+          <span class="category-amount">{formatAmount(category.totalAmount)}</span>
+        </div>
       </div>
-    </div>
     {/each}
   </div>
 </div>
+
+{#if $activeModal === 'category' && selectedCategory}
+  <CategoryModal category={selectedCategory} />
+{/if}
 
 <style>
   .category-container {
@@ -109,7 +133,7 @@
   }
 
   .category-list {
-    max-height: calc(4 * 70px); /* Limit to 4 items (assuming each item is ~70px tall) */
+    max-height: calc(4 * 70px);
     overflow-y: auto;
     scrollbar-width: none; /* For Firefox */
     -ms-overflow-style: none; /* For Internet Explorer and Edge */

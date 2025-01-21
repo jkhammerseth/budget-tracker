@@ -2,6 +2,7 @@
     import { writable } from 'svelte/store';
     import AddExpenseModal from './modals/AddExpenseModal.svelte';  // Import the modal component
     import AddIncomeModal from './modals/AddIncomeModal.svelte';
+    import UploadFileModal from './modals/UploadFileModal.svelte';
     import { activeModal } from "../stores/activeModal";  // Import the activeModal store
 
     const isFabMenuOpen = writable(false);
@@ -12,15 +13,24 @@
 
     function openAddExpenseModal() {
         activeModal.set("addExpense");  // Trigger the modal to open
+        toggleFabMenu();
     }
 
     function openAddIncomeModal() {
       activeModal.set("addIncome");
+      getCategories(); 
+      toggleFabMenu();
+    }
+
+    function openUploadFileModal() {
+      activeModal.set("uploadFile");
+      toggleFabMenu();
     }
 
 
     function handleAddOther() {
         console.log('Add Other action triggered');
+        toggleFabMenu();
     }
 </script>
 
@@ -30,7 +40,8 @@
         <div class="fab-menu">
             <button class="fab-menu-item" on:click={openAddIncomeModal}>Add Income</button>
             <button class="fab-menu-item" on:click={openAddExpenseModal}>Add Expense</button>
-            <button class="fab-menu-item" on:click={handleAddOther}>Other</button>
+            <button class="fab-menu-item" on:click={handleAddOther}>Add Category</button>
+            <button class="fab-menu-item" on:click={openUploadFileModal}>Upload file</button>
         </div>
     {/if}
 
@@ -47,6 +58,10 @@
 
 {#if $activeModal === 'addIncome'}
     <AddIncomeModal />
+{/if}
+
+{#if $activeModal === 'uploadFile'}
+  <UploadFileModal />
 {/if}
   
   <style>

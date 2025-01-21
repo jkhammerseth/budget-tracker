@@ -9,18 +9,18 @@ export const filteredIncome = derived(
       switch ($selectionMode) {
         case 'year':
           return $income.filter(inc => new Date(inc.Date).getFullYear() === $selectedYear);
-        case 'month':
-          return $income.filter(inc => {
-            const incomeDate = new Date(inc.Date);
-            return incomeDate.getFullYear() === $selectedYear && incomeDate.getMonth() === $selectedMonth;
-          });
+        case '':
+          return $income;
         case 'range':
           return $income.filter(inc => {
             const incomeDate = new Date(inc.Date);
             return incomeDate >= $selectedStartDate && incomeDate <= $selectedEndDate;
           });
         default:
-          return $income;
+          return $income.filter(inc => {
+            const incomeDate = new Date(inc.Date);
+            return incomeDate.getFullYear() === $selectedYear && incomeDate.getMonth() === $selectedMonth;
+          });
       }
     }
   );

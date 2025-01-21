@@ -10,6 +10,8 @@
     let frequency = '';
     let startDate = '';
     let endDate = '';
+
+    let isRecurring = false;
   
     const categories = [
       'Salary',
@@ -107,106 +109,199 @@
       startDate = '';
       endDate = '';
   }
+
+  function closeModal() {
+        activeModal.set(null); // Clear the active modal
+    }
   
+    $: frequency = isRecurring ? frequency : 'One-time';
   </script>
 
-<Modal modalId="addIncome">
-    <h2>Add Income</h2>
+<Modal modalId="addIncome" onClose={closeModal} title="Add Income">
+  <div class="modal-container">
     <div class="form-control">
       <input id="name" placeholder="Name" type="text" bind:value={name} />
-    </div>
-    <div class="form-control">
       <input id="amount" placeholder="Amount" type="number" bind:value={amount} />
-    </div>
-    <div class="form-control">
       <select id="category" bind:value={category}>
           <option value="">Select category</option>
           {#each categories as cat} 
             <option value={cat}>{cat}</option>
           {/each}
         </select>
-    </div>
-    <div class="form-control">
-      <select id="frequency" bind:value={frequency}>
-        <option value="">Select frequency</option>
-        <option value="One-time">One-time</option>
-        <option value="Daily">Daily</option>
-        <option value="Weekly">Weekly</option>
-        <option value="Monthly">Monthly</option>
-        <option value="Annually">Annually</option>
-      </select>
-    </div>
-    <div class="form-control">
+
+        <div class="recurring-box">
+          <label for="isRecurring">Recurring?</label>
+          <input class="checkbox" type="checkbox" id="isRecurring" bind:checked={isRecurring} />
+          </div>  
+
+        {#if isRecurring}
+                <select id="frequency" bind:value={frequency}>
+                    <option value="">Select frequency</option>
+                    <option value="Daily">Daily</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Annually">Annually</option>
+                </select>
+        {/if}
+
       <input id="date" type="date" bind:value={startDate} />
-    </div>
+
     {#if !(frequency === 'One-time' || frequency === '')}
-      <div class="form-control">
         <input id="date" type="date" bind:value={endDate} />
-      </div>
     {/if} 
+
     <button on:click={addIncome}>Add Income</button>
+  </div>
+</div>
     <Toast {message} {theme} {duration} />
 </Modal>
 
 <style>
-    .form-container {
-      width: 18rem;
-      margin: auto;
+  .modal-container {
+      display: grid;
+      grid-template-columns: 1fr; 
+      grid-template-rows: auto 1fr;
+      gap: 20px;
       padding: 20px;
-      background-color: var(--component-bg-color);
-      border-style: solid;
-      border-color: var(--component-border-color);
-      border-width: 1px;
-      border-radius: var(--component-border-radius);
-      box-shadow: var(--component-box-shadow);
-      font-family: var(--font-family);
-    }
+      height: 100%;
+      margin: auto;
+      justify-items: center;
+  }
   
-    h2 {
-      color: var(--text-color);
-      text-align: center;
-      margin-bottom: 20px;
-    }
+  .recurring-box {
+      display: flex;
+      align-items: center;
+      gap: 10px; 
+      font-size: 1rem; 
+      color: #555; 
+      margin-bottom: 15px; 
+  }
   
-    .form-control {
-      margin-bottom: 20px;
-      width: 100%;
-    }
   
-    input[type="text"],
-    input[type="number"],
-    input[type="date"],
-    select {
-      width: calc(100% - 20px);
-      padding: 10px;
-      margin-top: 5px;
-      margin-right: 10px;
-      border: 1px solid black;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
+  .recurring-box label {
+      font-size: 1rem;
+      cursor: pointer; 
+      color: #333;
+  }
   
-    button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-top: 20px;
-      background-color: var(--primary-button-color);
-      color: var(--primary-button-text-color);
-      border: none;
-      border-radius: 5px;
+  
+  .recurring-box .checkbox {
+      width: 18px; 
+      height: 18px;
+      border: 2px solid #ccc;
+      border-radius: 4px; 
+      background-color: #fff;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
   
-    button:hover {
-      background-color: var(--primary-button-hover-color);
-    }
+  .recurring-box .checkbox:checked {
+      background-color: var(--primary-button-color); 
+  }
   
-    @media (max-width: 480px) {
-        .form-container {
-            padding: 10px;
+  .recurring-box .checkbox:checked::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 6px;
+      width: 6px;
+      height: 6px;
+      background-color: #fff; 
+      clip-path: polygon(0 50%, 40% 100%, 100% 0, 40% 25%);
+      transform: rotate(45deg);
+  }
+  
+  .form-control {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 15px;
+      width: 100%;
+      max-width: 600px; 
+      overflow-y: auto;
+  }
+      .form-control {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch; /* Ensures uniform width */
+          gap: 15px;
+      }
+  
+          input,
+          select {
+          max-width: 100%;
+      }
+  
+    
+      .form-control label {
+        font-size: 1rem;
+        color: #555;
+      }
+    
+      input[type="text"],
+      input[type="number"],
+      input[type="date"],
+      select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 1rem;
+        background-color: #f9f9f9;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+    
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      input[type="date"]:focus,
+      select:focus {
+        border-color: #5c6bc0;
+        outline: none;
+        box-shadow: 0 0 5px rgba(92, 107, 192, 0.5);
+      }
+    
+      /* Button styles */
+      button {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--primary-button-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      }
+    
+      button:hover {
+        background-color: var(--primary-button-hover-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+    
+      button:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+  
+    
+      /* Responsive adjustments */
+      @media (max-width: 500px) {
+        .modal-container {
+          padding: 15px;
         }
-    }
-  </style>
-  
+    
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+          padding: 10px 12px;
+        }
+    
+        button {
+          font-size: 1rem;
+        }
+      }
+    </style>

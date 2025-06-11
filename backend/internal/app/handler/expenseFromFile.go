@@ -95,9 +95,21 @@ func ImportExpensesFromCSV(c *gin.Context) {
 		}
 
 		// Parse date
-		date, err := service.ParseDate(record[0])
-		if err != nil {
-			fmt.Printf("Error parsing date on line %d: %v\n", lineNum, err)
+		var date time.Time
+		var dateFormatError error
+		var dateString string
+
+		// Check record[2] first, fallback to record[0] if empty
+		if strings.TrimSpace(record[2]) != "" {
+			dateString = strings.TrimSpace(record[2])
+			date, dateFormatError = service.ParseDateTime(dateString) // ParseDateTime handles "dd.mm.yyyy hh.mm" format
+		} else {
+			dateString = strings.TrimSpace(record[0])
+			date, dateFormatError = service.ParseDate(dateString) // ParseDate handles "dd.mm.yyyy" format
+		}
+
+		if dateFormatError != nil {
+			fmt.Printf("Error parsing date (%s) on line %d: %v\n", dateString, lineNum, dateFormatError)
 			continue
 		}
 
@@ -107,6 +119,11 @@ func ImportExpensesFromCSV(c *gin.Context) {
 		}
 
 		if isIncome {
+			if isIncome && strings.ToLower(strings.TrimSpace(description)) == "overføring mellom egne kontoer" {
+				fmt.Printf("Transfer skipped on line %d\n", lineNum)
+				continue
+			}
+
 			// Check for duplicate income
 			var existingIncome model.Income
 			if err := db.Where("user_id = ? AND amount = ? AND date = ? AND name = ?", userIDUint, amount, date, description).First(&existingIncome).Error; err == nil {
@@ -121,11 +138,11 @@ func ImportExpensesFromCSV(c *gin.Context) {
 				Date:     date,
 				Name:     description,
 				Comment:  strings.TrimSpace(record[5]), // "Melding"
+				Category: "Salary",
 				Received: true,
 			}
 			incomes = append(incomes, income)
 		} else {
-
 			// In the expense creation part:
 			transType := service.TransactionType{
 				Type:        strings.TrimSpace(record[3]),
@@ -150,7 +167,8 @@ func ImportExpensesFromCSV(c *gin.Context) {
 					fmt.Printf("Warning: Invalid subcategory ID %d for category ID %d on line %d\n", subcategoryID, categoryID, lineNum)
 				}
 			}
-			// In the expense creation part:
+
+			// Generate UniqueHash
 			expense := model.Expense{
 				UserID:        userIDUint,
 				Amount:        amount,
@@ -161,27 +179,20 @@ func ImportExpensesFromCSV(c *gin.Context) {
 				CategoryID:    categoryID,
 				SubcategoryID: subcategoryIDPtr,
 			}
-			// Check for duplicate expense
-			isDuplicate, err := service.IsDuplicateExpense(db, &expense, 24*time.Hour) // Assume this checks for duplicates properly now
-			if err != nil {
-				fmt.Printf("Error checking for duplicates on line %d: %v\n", lineNum, err)
-				continue
-			}
-			if isDuplicate {
-				fmt.Printf("Duplicate expense skipped on line %d\n", lineNum)
-				continue
-			}
-
-			// Generate UniqueHash
 			expense.UniqueHash = service.GenerateUniqueHash(&expense)
 
 			// Check for duplicate expense
-			var existingExpense model.Expense
-			if err := db.Where("unique_hash = ?", expense.UniqueHash).First(&existingExpense).Error; err == nil {
+			var count int64
+			if err := db.Model(&model.Expense{}).Where("unique_hash = ?", expense.UniqueHash).Count(&count).Error; err != nil {
+				fmt.Printf("Error checking duplicate expense on line %d: %v\n", lineNum, err)
+				continue
+			}
+			if count > 0 {
 				fmt.Printf("Duplicate expense skipped on line %d\n", lineNum)
 				continue
 			}
 			expenses = append(expenses, expense)
+
 		}
 
 		lineNum++
@@ -192,16 +203,33 @@ func ImportExpensesFromCSV(c *gin.Context) {
 		return
 	}
 
-	// Save expenses to the database in batches of 100
 	batchSize := 100
+	uniqueHashes := make(map[string]bool)
+
 	for i := 0; i < len(expenses); i += batchSize {
 		end := i + batchSize
 		if end > len(expenses) {
 			end = len(expenses)
 		}
-		if result := db.Create(expenses[i:end]); result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error saving expenses: %v", result.Error)})
-			return
+		batch := expenses[i:end]
+
+		// Filter out duplicates in the batch
+		filteredBatch := []model.Expense{}
+		for _, expense := range batch {
+			if !uniqueHashes[expense.UniqueHash] {
+				uniqueHashes[expense.UniqueHash] = true
+				filteredBatch = append(filteredBatch, expense)
+			} else {
+				fmt.Printf("Duplicate expense skipped in batch with UniqueHash: %s\n", expense.UniqueHash)
+			}
+		}
+
+		// Save the filtered batch
+		if len(filteredBatch) > 0 {
+			if err := db.Create(&filteredBatch).Error; err != nil {
+				fmt.Printf("Error saving batch of expenses: %v\n", err)
+				continue
+			}
 		}
 	}
 
@@ -211,13 +239,16 @@ func ImportExpensesFromCSV(c *gin.Context) {
 		if end > len(incomes) {
 			end = len(incomes)
 		}
-		if result := db.Create(incomes[i:end]); result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error saving income sources: %v", result.Error)})
+		batch := incomes[i:end]
+
+		// Bulk insert
+		if err := db.Create(&batch).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Error saving income sources: %v", err)})
 			return
 		}
 	}
 
-	// And if everything is okay, respond with the result
+	// Respond with success message
 	c.JSON(http.StatusCreated, gin.H{
 		"message":       fmt.Sprintf("Successfully imported %d expenses and %d income sources", len(expenses), len(incomes)),
 		"expense_count": len(expenses),

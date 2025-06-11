@@ -9,6 +9,9 @@
   import { Calendar } from 'lucide-svelte';
 
   let selectedExpense = null;
+  let selectedExpenses = writable(new Set());
+  let selectAll = false;
+
 
   export const sortKey = writable(null); // Initial sort key
   export const sortOrder = writable(null); // Initial sort order
@@ -78,6 +81,30 @@ function toggleSort(key) {
     return diffDays >= 0 ? `${diffDays}d left` : `${Math.abs(diffDays)}d ago`;
   }
 
+  function toggleExpenseSelection(expenseId) {
+    if (selectedExpenses.has(expenseId)) selectedExpenses.delete(expenseId);
+    else selectedExpenses.add(expenseId);
+  }
+
+  function toggleSelectAll() {
+    selectAll.update((currentState) => {
+      const newState = !currentState;
+
+      // Update selectedExpenses based on the new state
+      selectedExpenses.set(
+        newState ? new Set($filteredSortedExpenses.map((e) => e.id)) : new Set()
+      );
+
+      return newState;
+    });
+  }
+
+  function deleteSelectedExpenses() {
+    // Handle deletion of all selected expenses
+    console.log('Delete expenses with IDs:', [...selectedExpenses]);
+    selectedExpenses = new Set(); // Reset selection after deletion
+  }
+
 </script>
 
 <div class="container">
@@ -90,6 +117,12 @@ function toggleSort(key) {
       <table>
         <thead>
           <tr>
+            <th>
+              <input
+              type="checkbox"
+              bind:checked={selectAll}
+              on:change={toggleSelectAll}
+            /></th>
             <th on:click={() => toggleSort('category')}>
               Category 
               {#if $sortKey === 'category'}
@@ -120,6 +153,11 @@ function toggleSort(key) {
         <tbody>
           {#each $filteredSortedExpenses as expense}
             <tr on:click={() => openExpenseModal(expense)}>
+              <td><input
+                type="checkbox"
+
+                on:click|stopPropagation={() => toggleExpenseSelection(expense.id)}
+              /></td>
               <td class="category-cell">
                 <div class="category-content">
                   {#if getIconComponent(expense.category.name)}
@@ -132,7 +170,7 @@ function toggleSort(key) {
                   <span class="category-name">{expense.category.name}</span>
                 </div>
               </td>
-              <td>{expense.name}</td>
+              <td class="name">{expense.name.toLowerCase()}</td>
               <td><ExpenseStatusButton {expense} /></td>
               <td class="text-right">
                 <div class="date-in-table">
@@ -167,6 +205,7 @@ function toggleSort(key) {
   .name,
   .date {
     font-weight: 450;
+    text-transform: capitalize;
   }
 
   table {

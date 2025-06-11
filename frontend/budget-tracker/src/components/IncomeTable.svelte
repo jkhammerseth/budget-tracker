@@ -11,12 +11,14 @@
   import IncomeModal from './modals/IncomeModal.svelte';
 
   let selectedIncome = null;
+  let selectedIncomes = new Set();
+  let selectAll = false;
 
   onMount(fetchIncome);
 
   function openIncomeModal(income) {
     selectedIncome = income;
-    console.log("clicked income")
+    console.log(income)
     activeModal.set('income');
   }
 
@@ -51,6 +53,17 @@
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
     return diffDays >= 0 ? `${diffDays}d left` : `${Math.abs(diffDays)}d ago`;
   }
+  
+  function toggleIncomeSelection(incomeId) {
+    if (selectedIncomes.has(incomeId)) selectedIncomes.delete(incomeId);
+    else selectedIncomes.add(incomeId);
+  }
+
+  function toggleSelectAll() {
+    selectAll = !selectAll;
+    selectedIncomes = new Set(selectAll ? $filteredIncome.map((e) => e.id) : []);
+  }
+
 </script>
 
 <div class="container">
@@ -63,6 +76,12 @@
       <table>
         <thead>
           <tr>
+            <th>
+              <input
+              type="checkbox"
+              bind:checked={selectAll}
+              on:change={toggleSelectAll}
+            /></th>
             <th>Category</th>
             <th>Name</th>
             <th class="text-right">Date</th>
@@ -72,6 +91,11 @@
         <tbody>
           {#each $filteredSortedIncome as income}
             <tr on:click={() => openIncomeModal(income)}>
+              <td><input
+                type="checkbox"
+                checked={selectedIncomes.has(income.ID)}
+                on:click|stopPropagation={() => toggleIncomeSelection(income.ID)}
+              /></td>
               <td class="category-cell">
                 <div class="category-content">
                   {#if getIconComponent(income.Category)}

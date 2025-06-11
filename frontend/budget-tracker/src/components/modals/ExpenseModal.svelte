@@ -182,7 +182,7 @@
                     </div>
                     </div>
                     <div class="detail-item">
-                        <span class="detail-label">Paid</span>
+                        <span class="detail-label">Status</span>
                         <td><ExpenseStatusButton {expense} /></td>
                     </div>
                     <div class="detail-item">

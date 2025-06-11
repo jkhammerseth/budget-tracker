@@ -259,11 +259,4 @@
     background-color: #7ffa86;
     border-radius: 20%;
   }
-
-
-
-.income {
-  background-color: #d6ffd6;
-}
-
 </style>

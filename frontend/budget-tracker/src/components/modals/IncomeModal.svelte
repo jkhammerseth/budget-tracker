@@ -7,10 +7,27 @@
     import { getIconComponent } from '../../utility/icons'
     import { fetchIncome } from '../../routes/api/fetchIncome';
     import { deleteIncome } from '../../routes/api/deleteIncome'
+    import { updateIncome } from '../../routes/api/updateIncome'
 
     export let income = null;
   
+    let editMode = false;
+    let updatedIncome = {};
     let confirmationDelete = false;
+
+    const incomeCategories = ["Salary", "Vipps"]
+
+    function toggleEditMode() {
+        editMode = !editMode;
+        if (editMode) {
+            updatedIncome = { 
+            ...income,
+            Category: income?.Category || "",
+            Date: income?.Date ? income.Date.split('T')[0] : "",
+            Amount: income?.Amount ? income.Amount.toString().split('.')[0] : "",
+            };
+        }
+    }
 
     async function handleDelete() {
       try {
@@ -32,6 +49,35 @@
     $: if (!$activeModal) {
       income = null;  
     }
+
+    async function handleUpdate(event) {
+    event.preventDefault();
+
+    // Prepare the payload
+    const payload = {
+        ID: income.ID, 
+        Name: updatedIncome.Name,
+        Amount: parseFloat(updatedIncome.Amount),
+        Category: updatedIncome.Category,
+        Date: updatedIncome.Date
+            ? new Date(updatedIncome.Date).toISOString() // Convert to ISO string
+            : null,
+    };
+
+    console.log('Updating expense with data:', payload);
+
+    try {
+        await updateIncome(payload);
+        console.log('Income updated successfully');
+        await fetchIncome();
+        editMode = false;
+    } catch (error) {
+        console.error('Error updating income:', error.message);
+    }
+}
+
+
+
   </script>
   
 <!-- Modal Content Structure -->
@@ -49,6 +95,43 @@
                         <button on:click={handleDelete} class="btn btn-danger">Delete</button>
                     </div>
                 </div>
+
+                        <!-- Edit Form -->
+                    {:else if editMode}
+                    <form on:submit={handleUpdate} class="edit-form">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input id="name" type="text" bind:value={updatedIncome.Name} required />
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">Amount</label>
+                            <div class="input-with-prefix">
+                                <span class="currency-prefix">kr</span>
+                                <input id="amount" type="float" bind:value={updatedIncome.Amount} required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" bind:value={updatedIncome.Category}>
+                                <option value="">Select category</option>
+                                {#each incomeCategories as cat}
+                                    <option value={cat}>{cat}</option>
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <div class="input-with-icon">
+                                <Calendar size="16" class="input-icon" />
+                                <input id="date" type="date" bind:value={updatedIncome.Date} required />
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button type="button" on:click={toggleEditMode} class="btn btn-secondary">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+
                 <!-- View Mode -->
                 {:else}
                 <div class="expense-details">
@@ -61,7 +144,7 @@
                         <div class="detail-value with-icon">
                         {#if getIconComponent(income.Category)}
                             <span class="category-icon">
-                            <svelte:component this={getIconComponent(income.Category.name)} size="16" />
+                            <svelte:component this={getIconComponent(income.Category)} size="16" />
                             </span>
                         {:else}
                             📁
@@ -76,17 +159,22 @@
                             {formatDate(income.Date)}
                         </span>
                     </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Comment</span>
+                        <span class="detail-value">{income.Comment}</span>
+
+                    </div>
                 </div>
                 <div class="button-group">
                     <button on:click={() => (confirmationDelete = true)} class="btn btn-danger">Delete</button>
-                    <button on:click={console.log("edit")} class="btn btn-primary">Edit</button>
+                    <button on:click={toggleEditMode} class="btn btn-primary">Edit</button>
                 </div>
                 {/if}
             </div>
     </Modal>
 {/if}
   
-  <style>
+<style>
     .modal-content {
         padding: 0;
         border-radius: 12px;
@@ -110,7 +198,59 @@
         margin-bottom: 1.5rem;
         font-size: 1.1rem;
     }
-  
+
+    .edit-form {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #4a5568;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .input-with-prefix,
+    .input-with-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .currency-prefix {
+        position: absolute;
+        left: 1rem;
+        color: #666;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #3A87F2;
+        box-shadow: 0 0 0 3px rgba(58, 135, 242, 0.1);
+    }
+
+    .input-with-prefix input {
+        padding-left: 3rem;
+    }
+
+    .input-with-icon input {
+        padding-left: 2.5rem;
+    }
+
     .expense-details {
         padding: 1.5rem;
     }
@@ -141,6 +281,11 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+    }
+
+    .comment {
+        font-style: italic;
+        color: #666;
     }
 
     .button-group {

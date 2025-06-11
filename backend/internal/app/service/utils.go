@@ -1,7 +1,6 @@
 package service
 
 import (
-	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -9,12 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/texttheater/golang-levenshtein/levenshtein"
-
 	"github.com/jkhammerseth/budget-tracker/backend/internal/app/model"
 	"github.com/jkhammerseth/budget-tracker/backend/pkg/db"
-
-	"gorm.io/gorm"
 
 	"strings"
 )
@@ -120,7 +115,7 @@ func buildCategoryPatterns() map[string]CategoryPattern {
 		},
 		"Entertainment": {
 			Types:    []string{"underholdning"},
-			Keywords: []string{"apple.com/bill", "itunes", "spotify", "netflix", "hbo", "lotto", "lotteri", "kino", "paypal", "rakuten"},
+			Keywords: []string{"apple.com/bill", "itunes", "spotify", "netflix", "hbo", "lotto", "lotteri", "kino", "paypal", "rakuten", "scene"},
 		},
 		"Healthcare": {
 			Types:    []string{"treningssenter", "helse"},
@@ -132,7 +127,7 @@ func buildCategoryPatterns() map[string]CategoryPattern {
 		},
 		"Shopping": {
 			Types:    []string{"klær", "clothing"},
-			Keywords: []string{"klarna", "h&m", "zara", "cubus", "ark", "mani", "blue tomato", "jula", "ikea", "lush", "clas ohl", "lagunen", "hi-fi"},
+			Keywords: []string{"klarna", "elkjoep", "kitch", "h&m", "zara", "cubus", "ark", "mani", "blue tomato", "jula", "ikea", "lush", "clas ohl", "lagunen", "hi-fi", "jernia", "xxl", "megaflis", "monter"},
 		},
 	}
 }
@@ -149,7 +144,7 @@ func buildSubcategoryPatterns() map[string]SubcategoryPattern {
 			Keywords: []string{"meny", "bunnpris", "rema", "kiwi", "matsenter"},
 		},
 		"Restaurants": {
-			Keywords: []string{"restaurant", "café", "cafe", "coffee"},
+			Keywords: []string{"restaurant", "café", "cafe", "coffee", "burger", "deli", "pub"},
 		},
 		"Fuel": {
 			Keywords: []string{"shell", "circle k", "uno-x", "fuel"},
@@ -162,6 +157,9 @@ func buildSubcategoryPatterns() map[string]SubcategoryPattern {
 		},
 		"Electricity": {
 			Keywords: []string{"strøm", "electricity", "power"},
+		},
+		"Taxfree": {
+			Keywords: []string{"dutyfree", "duyr-free"},
 		},
 	}
 }
@@ -277,6 +275,11 @@ func ParseDate(s string) (time.Time, error) {
 	return time.Parse("02.01.2006", s)
 }
 
+func ParseDateTime(dateTimeString string) (time.Time, error) {
+	layout := "02.01.2006 15.04" // Format for "dd.mm.yyyy hh.mm"
+	return time.Parse(layout, dateTimeString)
+}
+
 func ParseAmount(s string) (float64, error) {
 	// Remove spaces and replace comma with dot
 	s = strings.TrimSpace(s)
@@ -299,54 +302,8 @@ func NormalizeDescription(desc string) string {
 	return normalized
 }
 
-func IsDuplicateExpense(db *gorm.DB, expense *model.Expense, threshold time.Duration) (bool, error) {
-	var existingExpenses []model.Expense
-
-	if expense.PaymentDate == nil {
-		// Handle nil PaymentDate appropriately, for example, set a default value or skip.
-		return false, nil
-	}
-
-	// Look for transactions within a configurable time window (e.g., ±1 day)
-	startDate := expense.PaymentDate.Add(-threshold)
-	endDate := expense.PaymentDate.Add(threshold)
-
-	// Query for potential duplicates based on amount and payment date
-	err := db.Where("user_id = ? AND ABS(amount - ?) < ?",
-		expense.UserID,
-		expense.Amount,
-		0.1). // Adjust the threshold for amount comparison if needed
-		Where("payment_date BETWEEN ? AND ?",
-			startDate,
-			endDate,
-		).Find(&existingExpenses).Error
-
-	if err != nil {
-		return false, err
-	}
-
-	// Normalize the new transaction's description for comparison
-	normalizedNew := NormalizeDescription(expense.Name)
-
-	// Check each existing expense for potential duplicates based on description and amount
-	for _, existing := range existingExpenses {
-		// Normalize each existing expense's description
-		normalizedExisting := NormalizeDescription(existing.Name)
-
-		// Compare the descriptions using Levenshtein distance
-		// This allows for some flexibility in description comparison
-		if normalizedNew == normalizedExisting || levenshtein.DistanceForStrings([]rune(normalizedNew), []rune(normalizedExisting), levenshtein.DefaultOptions) <= 3 {
-			// If the descriptions are identical or have small differences (<= 3 edits), consider it a duplicate
-			return true, nil
-		}
-	}
-
-	// No duplicate found
-	return false, nil
-}
-
 func GenerateUniqueHash(expense *model.Expense) string {
-	hashInput := fmt.Sprintf("%d|%f|%s|%d", expense.UserID, expense.Amount, expense.Name, expense.PaymentDate)
-	hash := md5.Sum([]byte(hashInput))
+	hashInput := fmt.Sprintf("%d|%f|%s|%s", expense.UserID, expense.Amount, expense.Name, expense.PaymentDate.Format("2006-01-02"))
+	hash := sha256.Sum256([]byte(hashInput))
 	return hex.EncodeToString(hash[:])
 }
